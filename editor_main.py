@@ -56,13 +56,13 @@ class App(Tk):
         self.q_people = Entry(self)  # int(input("Введите удельную норму водоотведения на одного жителя (л/сут), цифрами, к примеру 150\n"))/24000#
         self.button = Button(self, text="Произвести расчет", command=self.calculations)
         self.year.insert(0, str(year))
-        self.year_lab = Label(self, text="Введите год:")#, к примеру 2022
+        # self.year_lab = Label(self, text="Введите год:")#, к примеру 2022
         self.num_people.insert(0, str(num_people))
         self.num_people_lab = Label(self, text="Введите количество человек:")# цифрами, к примеру 2000"
         self.q_people.insert(0, str(q_people))
         self.q_people_lab = Label(self, text="Введите удельную норму водоотведения на одного жителя (л/сут):")#, цифрами, к примеру 150"
-        self.year.grid(column=1, row=0, sticky="w")
-        self.year_lab.grid(column=0, row=0, sticky="w")
+        # self.year.grid(column=1, row=0, sticky="w")
+        # self.year_lab.grid(column=0, row=0, sticky="w")
         self.num_people.grid(column=1, row=1, sticky="w")
         self.num_people_lab.grid(column=0, row=1, sticky="w")
         self.q_people.grid(column=1, row=2, sticky="w")
@@ -72,7 +72,7 @@ class App(Tk):
         self.button.grid(columnspan=3, row=6)
         self.num_people.focus_set()
         self.q_people.focus_set()
-        self.year.focus_set()
+        # self.year.focus_set()
         if not os.path.exists(f"{os.getcwd()}/excel_chart_day.jpeg"):
             img = Image.open(os.path.join(self.application_path, 'excel_chart_day.jpeg'))
         else:
@@ -113,14 +113,33 @@ class App(Tk):
         self.btn2.grid(column=0, row=3)
         self.btn3.grid(column=1, row=3)
         self.btn4.grid(column=2, row=3)
+        self.button2 = Button(self, text="Произвести расчет(из эксель)", command=self.calculations2)
+        self.button2.grid(columnspan=3, row=8)
 
     def calculations(self):
         self.label['text'] = "                       "
         self.update_idletasks()
         df = main(year=int(self.year.get()), num_people=int(self.num_people.get()), q_people=int(self.q_people.get()))
-        faind_max_min_in_day(df)
-        faind_max_min_in_hour(df)
-        chart_year(df)
+        df2 = chart_year(df)
+        faind_max_min_in_day(df2)
+        faind_max_min_in_hour(df2)
+
+    def calculations2(self):
+        self.label['text'] = "                       "
+        self.update_idletasks()
+        df = pd.read_excel(f"{os.getcwd()}/expense_schedule.xlsx")
+        self.label['text'] = "40%"
+        self.update_idletasks()
+        df2 = chart_year(df)
+        print(df2)
+        self.label['text'] = "70%"
+        self.update_idletasks()
+        faind_max_min_in_hour(df2)
+        self.label['text'] = "90%"
+        self.update_idletasks()
+        faind_max_min_in_day(df2)
+        self.label['text'] = "Готово"
+        self.update_idletasks()
 
     def open_window(self):
         os.system(f"explorer {os.getcwd()}")
@@ -182,6 +201,9 @@ class win_setting(Toplevel):
     global list_values
     def __init__(self, parent, num, label_x, label_y, description, name, num_month=0):
         super().__init__(parent)
+        self.scale_list = []
+        self.cb = {"box": [],
+                   "val": []}
         self.v = []
         self.num = num
         self.num_day = 0
@@ -209,6 +231,7 @@ class win_setting(Toplevel):
         #     self.resizable(width=False, height=False)
 
         l = []
+
         if self.name == "year":
             for m in range(1, self.num_month):
                 num = int(monthrange(2022, m)[1])
@@ -220,10 +243,12 @@ class win_setting(Toplevel):
                 l.append(Label(self))
                 l[i - self.num_day].config(text=str(i - self.num_day + 1))
                 Scale(self, variable=self.v[i], from_=2.0, to=0.0, orient=VERTICAL, resolution=0.01, bd=0, length=300,
-                      command=self.magic).grid(column=i - self.num_day, row=1)
-                l[i - self.num_day].grid(column=i - self.num_day, row=2)
+                      command=self.magic).grid(column=i - self.num_day, row=2)
+                l[i - self.num_day].grid(column=i - self.num_day, row=3)
         else:
             for i in range(self.num):
+                self.cb["box"].append(IntVar())
+                self.cb["val"].append(0)
                 self.v.append(DoubleVar())
                 self.v[i].set(list_values[self.name][i])
                 l.append(Label(self))
@@ -232,16 +257,23 @@ class win_setting(Toplevel):
                 else:
                     l[i].config(text=str(i + 1))
                 if self.name == "day":
-                    Scale(self, variable=self.v[i], from_=4.0, to=0.0, orient=VERTICAL, resolution=0.01, bd=0, length=300, command=self.magic).grid(column=i, row=0)
+                    from_scale = 4.0
                 else:
-                    Scale(self, variable=self.v[i], from_=2.0, to=0.0, orient=VERTICAL, resolution=0.01, bd=0, length=300, command=self.magic).grid(column=i, row=0)
-                l[i].grid(column=i, row=1)
+                    from_scale = 2.0
+                Checkbutton(self, variable=self.cb["box"][i], command=self.magic_checkbox).grid(column=i, row=1, sticky="e")
+                self.scale_list.append(Scale(self, variable=self.v[i], from_=from_scale, to=0.0, orient=VERTICAL, resolution=0.01, bd=0, length=300, command=self.magic))
+                self.scale_list[i].grid(column=i, row=2)
+                l[i].grid(column=i, row=3)
 
         self.button = Button(self, text="Сохранить", command=self.select)
         self.button2 = Button(self, text="Закрыть", command=clear_window)
+        self.button3 = Button(self, text="Сбросить всё на единицы", command=self.default)
+        # self.button4 = Button(self, text="Отменить всё", command=self.main_class)
 
-        self.button.grid(columnspan=55, row=3)
-        self.button2.grid(columnspan=55, row=4)
+        self.button.grid(columnspan=55, row=4)
+        self.button2.grid(columnspan=55, row=5)
+        self.button3.grid(columnspan=55, row=0, sticky="w")
+        # self.button4.grid(columnspan=10, column=2, row=0)
 
     def select(self):
         if self.name == "day":
@@ -264,31 +296,59 @@ class win_setting(Toplevel):
         self.file_name = f'excel_chart_{self.name}.jpeg'
         self.chart()
 
+    def magic_checkbox(self):
+        for i in range(self.num_day, self.num_day + self.num):
+            if self.cb["box"][i].get() != self.cb["val"][i]:
+                if self.cb["val"].count(0) == 2:
+                    if self.cb["box"][i].get() == 1:
+                        self.cb["box"][i].set(0)
+                if self.cb["box"][i].get() == 0:
+                    self.cb["val"][i] = 0
+                else:
+                    self.cb["val"][i] = 1
+                    # self.scale_list[i].state(["disabled"])
+                    self.scale_list[i].configure(state='disabled')
     def magic(self, value):
         # print(value)
-
         for i in range(self.num_day, self.num_day + self.num):
             if self.v[i].get() != list_values[self.name][i]:
                 if self.name != "year":
-                    z = (list_values[self.name][i]-self.v[i].get())/(self.num-1)
+                    if self.cb["val"].count(1) == 0:
+                        z = (list_values[self.name][i]-self.v[i].get())/(self.num-1)
+                    else:
+                        z = (list_values[self.name][i]-self.v[i].get())/(self.cb["val"].count(0)-1)
+                    for j in range(len(list_values[self.name])):
+                        if j != i and self.cb["val"][j] != 1:
+                            self.v[j].set(self.v[j].get() + z)
+                        list_values[self.name][j] = self.v[j].get()
                 else:
                     z = (list_values[self.name][i] - self.v[i].get()) / 365
-                for j in range(len(list_values[self.name])):
-                    if j!=i:
-                        self.v[j].set(self.v[j].get()+z)
-                    list_values[self.name][j] = self.v[j].get()
+                    for j in range(len(list_values[self.name])):
+                        if j != i:
+                            self.v[j].set(self.v[j].get() + z)
+                        list_values[self.name][j] = self.v[j].get()
+
                 break
 
     def chart(self):
         fig, ax = plt.subplots()
-        plt.plot(self.list_x, self.list_y)
+        plt.plot(self.list_x, self.list_y, color='red')
         fig.autofmt_xdate()
         ax.grid()
+        if self.name == "day":
+            plt.xlim([1, 24])
         ax.set_title(self.description)
         plt.ylabel(self.label_y)
         plt.xlabel(self.label_x)
         plt.savefig(self.file_name)
         plt.close()
+
+    def default(self):
+        for j in range(len(list_values[self.name])):
+            self.v[j].set(1.0)
+            # self.cb["box"][j].set(0)
+            # self.cb["val"][j] = 0
+            list_values[self.name][j] = 1.0
 
 class win_setting_for_year(Toplevel):
     def __init__(self, parent):
@@ -330,6 +390,9 @@ class win_setting_for_year(Toplevel):
 
         about = win_setting(self, num, label_x, label_y, description, name, num_month=month)
         about.grab_set()
+
+
+
 
 def clear_window():
     for widgets in app.winfo_children():
@@ -398,17 +461,24 @@ def chart_year(df):
     day_i = 1
     days = []
     value = []
+    value_for_df = []
     values_vrem = []
     for idx, row in df.iterrows():
         if int(df['час'].max()) == int(row['час']):
             values_vrem.append(row["общий расход"])
-            value.append((sum(values_vrem) / (len(values_vrem))) * 24)
+            rez_velues_vrem = (sum(values_vrem) / (len(values_vrem))) * 24
+            value.append(rez_velues_vrem)
+            for i in range(24):
+                value_for_df.append(rez_velues_vrem)
             values_vrem = []
             days.append(day_i)
         elif int(row['день']) == day:
             values_vrem.append(row["общий расход"])
         else:
-            value.append((sum(values_vrem) / (len(values_vrem))) * 24)
+            rez_velues_vrem = (sum(values_vrem) / (len(values_vrem))) * 24
+            value.append(rez_velues_vrem)
+            for i in range(24):
+                value_for_df.append(rez_velues_vrem)
             day = int(row['день'])
             days.append(day_i)
             day_i += 1
@@ -419,11 +489,13 @@ def chart_year(df):
     description = f"Годовой расход, м3/сут"
     file_name = f'chart_year.jpeg'
     chart(days, value, label_x, label_y, description, file_name)
+    df['for_year'] = value_for_df
+    return df
 
 def faind_max_min_in_day(df):
-    max_min_value = [[df['общий расход'].max(), 'max', 'Максимальный'], [df['общий расход'].min(), 'min', 'Минимальный']]#
+    max_min_value = [[df['for_year'].max(), 'max', 'Максимальный'], [df['for_year'].min(), 'min', 'Минимальный']]#
     for v in max_min_value:
-        df2 = df[df['общий расход'] == v[0]]
+        df2 = df[df['for_year'] == v[0]]
         for idx, row in df2.iterrows():
             df3 = df[df['месяц'] == row['месяц']]
             day = 1
@@ -455,9 +527,9 @@ def faind_max_min_in_day(df):
             break
 
 def faind_max_min_in_hour(df):
-    max_min_value = [[df['общий расход'].max(), 'max', 'Максимальный'], [df['общий расход'].min(), 'min', 'Минимальный']]
+    max_min_value = [[df['for_year'].max(), 'max', 'Максимальный'], [df['for_year'].min(), 'min', 'Минимальный']]
     for v in max_min_value:
-        df2 = df[df['общий расход'] == v[0]]
+        df2 = df[df['for_year'] == v[0]]
         for idx, row in df2.iterrows():
             df3 = df[df['месяц'] == row['месяц']]
             df3 = df3[df3['день'] == row['день']]
@@ -470,13 +542,13 @@ def faind_max_min_in_hour(df):
                 label_y = 'м3/час'
                 description = f"{v[2]} часовой расход, м3/час ({int(row['день'])}й день, {int(row['месяц'])}й месяц)"
                 file_name = f'{v[1]}_chart_hour.jpeg'
-                chart(hour, value, label_x, label_y, description, file_name)
+                chart(hour, value, label_x, label_y, description, file_name, limit=True)
             break
 
 def raschet(j, q_people, procent, year, list_day, list_week, list_year, rezult, rez):
     weekday = int(monthrange(year, 1)[0])  # узнаём день недели первого дня.
-    week = 0
     hour = 1
+    day_for_year = 0
     for i in range(12):
         if rand_opt:
             if j > procent:
@@ -486,8 +558,9 @@ def raschet(j, q_people, procent, year, list_day, list_week, list_year, rezult, 
         month = i + 1
         days = int(monthrange(year, month)[1])  # узнаём количество дней в месяце
         for day in range(days):
+            day_for_year += 1
             value_w = list_week[weekday]
-            value_m = list_year[week]
+            value_m = list_year[day_for_year]
             for i_h in range(24):
                 value_h = list_day[i_h]
                 consumption = value_h * value_w * value_m * q_people
@@ -504,7 +577,6 @@ def raschet(j, q_people, procent, year, list_day, list_week, list_year, rezult, 
             weekday += 1
             if weekday == 7:
                 weekday = 0
-                week += 1
 
 def chart(list_x,list_y,label_x, label_y, description, file_name, limit=False):
     fig, ax = plt.subplots()

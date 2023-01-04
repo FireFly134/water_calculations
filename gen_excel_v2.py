@@ -179,6 +179,6 @@ def chart(list_x,list_y,label_x, label_y, description, file_name, limit=True):
 if __name__ == "__main__":
     # df = main()
     df = pd.read_excel(f"{os.getcwd()}/expense_schedule.xlsx")
-    faind_max_min_in_day(df)
+    # faind_max_min_in_day(df)
     # faind_max_min_in_hour(df)
-    # chart_year(df)
+    chart_year(df)

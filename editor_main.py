@@ -20,7 +20,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 from PIL import ImageTk, Image
 
-rand_opt = False#вкл или выкл рандома
+rand_opt = False #вкл или выкл рандома
 
 year = 2023
 num_people = 1000
@@ -31,20 +31,20 @@ list_values = {"day": [],
                 "year":  [],
                }
 
-
-class App(Tk):
+### Основное приложение TKinter ###
+class main_app(Tk):
     def __init__(self):
         super().__init__()
         self.title("Программа для расчета потребления воды")
-        self.resizable(width=False, height=False)
-        if getattr(sys, 'frozen', False):
-            self.application_path = sys._MEIPASS
+        self.resizable(width=False, height=False) # Запрещаем увеличивать размеры окна
+        if getattr(sys, 'frozen', False): # Проверяем создаёт ли программа временные файлы
+            self.application_path = sys._MEIPASS # сохраняем путь до временных файлов
         elif __file__:
-            self.application_path = os.path.dirname(__file__)
-        iconFile = 'ivea_icon.ico'
-        self.iconbitmap(default=os.path.join(self.application_path, iconFile))
-        self.check()
-        self.main()
+            self.application_path = os.path.dirname(__file__) # Если временных файлов нет, а это только когда программа не скомпилированна, берем нужные файлы рядом с папкой
+        iconFile = 'ivea_icon.ico' # название файла иконки для приложения
+        self.iconbitmap(default=os.path.join(self.application_path, iconFile)) # Открываем иконку для отображения в программе
+        self.check() # Проверяем на наличие около программы документов, в противном случае достаем из корня программы файлы по дефолту
+        self.main() # Открываем основное окно и рисуем интерфейс.
 
     def main(self):
         w = int(640/1.5)
@@ -196,6 +196,7 @@ class App(Tk):
             df_year = pd.read_excel(os.path.join(self.application_path, "year.xlsx"))
         list_values["year"] = df_year['k'].to_list()
 
+### Дочернее приложение TKinter, открывается дочернее окно (универсальное)###
 class win_setting(Toplevel):
     # global v
     global list_values
@@ -350,6 +351,7 @@ class win_setting(Toplevel):
             # self.cb["val"][j] = 0
             list_values[self.name][j] = 1.0
 
+### Дочернее приложение TKinter, открывается дочернее окно с кнопками в которых названия месяцев###
 class win_setting_for_year(Toplevel):
     def __init__(self, parent):
         super().__init__(parent)
@@ -391,9 +393,7 @@ class win_setting_for_year(Toplevel):
         about = win_setting(self, num, label_x, label_y, description, name, num_month=month)
         about.grab_set()
 
-
-
-
+### Очищаем основное окно, чтобы потом нарисовать новые картинки ###
 def clear_window():
     for widgets in app.winfo_children():
         widgets.destroy()
@@ -456,6 +456,47 @@ def main(year, num_people, q_people):
     # df2.to_excel(f"{os.getcwd()}/expense_schedule4.xlsx", index=None)
     return df
 
+### Общий расчет ###
+def raschet(j, q_people, procent, year, list_day, list_week, list_year, rezult, rez):
+    weekday = int(monthrange(year, 1)[0])  # узнаём день недели первого дня.
+    hour = 1
+    day_for_year = 0
+    for i in range(12):
+        if rand_opt:
+            if j > procent:
+                list_day = sample(list_day, len(list_day))
+                list_week = sample(list_week, len(list_week))
+            list_year = sample(list_year, len(list_year))
+        month = i + 1
+        days = int(monthrange(year, month)[1])  # узнаём количество дней в месяце
+        for day in range(days):
+            day_for_year += 1
+            value_w = list_week[weekday]
+            value_m = list_year[day_for_year]
+            for i_h in range(24):
+                value_h = list_day[i_h]
+                consumption = value_h * value_w * value_m * q_people
+                if rand_opt:
+                    random_num = uniform((consumption * 0.15) * (-1), (consumption * 0.15))#0#
+                else:
+                    random_num = 0#uniform((consumption * 0.15) * (-1), (consumption * 0.15))#
+                if j == 0:
+                    rez["час"].append(hour)
+                    rez["день"].append(day+1)
+                    rez["месяц"].append(month)
+                rezult[j][hour - 1] = consumption + random_num
+                hour += 1
+            weekday += 1
+            if weekday == 7:
+                weekday = 0
+
+
+
+################################
+# Расчет и сохранение графиков #
+################################
+
+### Расчет для графика "Годовой расход" ###
 def chart_year(df):
     day = 1
     day_i = 1
@@ -492,6 +533,7 @@ def chart_year(df):
     df['for_year'] = value_for_df
     return df
 
+### Расчет для графика "суточный расход" ###
 def faind_max_min_in_day(df):
     max_min_value = [[df['for_year'].max(), 'max', 'Максимальный'], [df['for_year'].min(), 'min', 'Минимальный']]#
     for v in max_min_value:
@@ -526,6 +568,7 @@ def faind_max_min_in_day(df):
                 chart(days, value, label_x, label_y, description, file_name)
             break
 
+### Расчет для графика "часовой расход" ###
 def faind_max_min_in_hour(df):
     max_min_value = [[df['for_year'].max(), 'max', 'Максимальный'], [df['for_year'].min(), 'min', 'Минимальный']]
     for v in max_min_value:
@@ -545,39 +588,7 @@ def faind_max_min_in_hour(df):
                 chart(hour, value, label_x, label_y, description, file_name, limit=True)
             break
 
-def raschet(j, q_people, procent, year, list_day, list_week, list_year, rezult, rez):
-    weekday = int(monthrange(year, 1)[0])  # узнаём день недели первого дня.
-    hour = 1
-    day_for_year = 0
-    for i in range(12):
-        if rand_opt:
-            if j > procent:
-                list_day = sample(list_day, len(list_day))
-                list_week = sample(list_week, len(list_week))
-            list_year = sample(list_year, len(list_year))
-        month = i + 1
-        days = int(monthrange(year, month)[1])  # узнаём количество дней в месяце
-        for day in range(days):
-            day_for_year += 1
-            value_w = list_week[weekday]
-            value_m = list_year[day_for_year]
-            for i_h in range(24):
-                value_h = list_day[i_h]
-                consumption = value_h * value_w * value_m * q_people
-                if rand_opt:
-                    random_num = uniform((consumption * 0.15) * (-1), (consumption * 0.15))#0#
-                else:
-                    random_num = 0#uniform((consumption * 0.15) * (-1), (consumption * 0.15))#
-                if j == 0:
-                    rez["час"].append(hour)
-                    rez["день"].append(day+1)
-                    rez["месяц"].append(month)
-                rezult[j][hour - 1] = consumption + random_num
-                hour += 1
-            weekday += 1
-            if weekday == 7:
-                weekday = 0
-
+### Рисуем графики по параметрам которые присылаем ###
 def chart(list_x,list_y,label_x, label_y, description, file_name, limit=False):
     fig, ax = plt.subplots()
     plt.plot(list_x, list_y)
@@ -592,5 +603,5 @@ def chart(list_x,list_y,label_x, label_y, description, file_name, limit=False):
     plt.close()
 
 if __name__ == "__main__":
-    app = App()
+    app = main_app()
     app.mainloop()

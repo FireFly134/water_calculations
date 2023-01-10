@@ -52,8 +52,8 @@ class main_app(Tk):
         self.progressbar = Progressbar(self, orient=HORIZONTAL, length=400, mode='determinate')
         self.label = Label(self, text="")
         self.year = Entry(self)  # Введите год цифрами
-        self.num_people = Entry(self)  # int(input("Введите количество человек цифрами, к примеру 2000\n"))#
-        self.q_people = Entry(self)  # int(input("Введите удельную норму водоотведения на одного жителя (л/сут), цифрами, к примеру 150\n"))/24000#
+        self.num_people = Entry(self)  # Введите количество человек цифрами, к примеру 2000
+        self.q_people = Entry(self)  # Введите удельную норму водоотведения на одного жителя (л/сут), цифрами, к примеру 150
         self.button = Button(self, text="Произвести расчет", command=self.calculations)
         self.year.insert(0, str(year))
         # self.year_lab = Label(self, text="Введите год:")#, к примеру 2022
@@ -145,6 +145,7 @@ class main_app(Tk):
         os.system(f"explorer {os.getcwd()}")
 
     def open_window_day(self):
+        self.check()
         self.save_glob()
         num = 24
         label_x = 'Час'
@@ -155,6 +156,7 @@ class main_app(Tk):
         about2.grab_set()
 
     def open_window_week(self):
+        self.check()
         self.save_glob()
         num = 7
         label_x = 'номер недели'
@@ -166,16 +168,19 @@ class main_app(Tk):
         about2.grab_set()
 
     def open_window_year(self):
+        self.check()
         self.save_glob()
         about2 = win_setting_for_year(self)
         about2.grab_set()
 
+# тут мы просто сохраняем глобальные переменные...
     def save_glob(self):
         global year, num_people, q_people
         year = int(self.year.get())
         num_people = int(self.num_people.get())
         q_people = int(self.q_people.get())
 
+# Проверка на наличие необходимых файлов и их открытие.
     def check(self):
         global list_values
         if os.path.exists(f"{os.getcwd()}/day.xlsx"):
@@ -206,7 +211,7 @@ class win_setting(Toplevel):
         self.cb = {"box": [],
                    "val": []}
         self.v = []
-        self.num = num
+        self.num = num # кол-во элементов
         self.num_day = 0
         self.num_month = num_month
         self.label_x = label_x
@@ -275,7 +280,8 @@ class win_setting(Toplevel):
         self.button2.grid(columnspan=55, row=5)
         self.button3.grid(columnspan=55, row=0, sticky="w")
         # self.button4.grid(columnspan=10, column=2, row=0)
-
+        self.lable_test = Label(self)
+        self.lable_test.grid(columnspan=55, row=6)
     def select(self):
         if self.name == "day":
             name_column = "hour"
@@ -297,19 +303,24 @@ class win_setting(Toplevel):
         self.file_name = f'excel_chart_{self.name}.jpeg'
         self.chart()
 
+# отвечает за функционал черкбоксов, отслеживает было ли сделано действие и какое.
     def magic_checkbox(self):
+        # Перебираем все значения
         for i in range(self.num_day, self.num_day + self.num):
+            # Если значение отличается от того какое у нас было записано, то выполняем действие.
             if self.cb["box"][i].get() != self.cb["val"][i]:
+                # Обязательно следим чтобы осталось не меньше 2х не активированых чекбоксов. Иначе просто не даем нажимать на них.
                 if self.cb["val"].count(0) == 2:
                     if self.cb["box"][i].get() == 1:
                         self.cb["box"][i].set(0)
+                # Ну и на реакцию действия деактивируем или активируем возможнось изменения значений. И все фиксируем соответственно.
                 if self.cb["box"][i].get() == 0:
                     self.cb["val"][i] = 0
+                    self.scale_list[i].configure(state='active')
                 else:
                     self.cb["val"][i] = 1
-                    # self.scale_list[i].state(["disabled"])
                     self.scale_list[i].configure(state='disabled')
-    def magic(self, value):
+    def magic_old(self, value):
         # print(value)
         for i in range(self.num_day, self.num_day + self.num):
             if self.v[i].get() != list_values[self.name][i]:
@@ -319,8 +330,19 @@ class win_setting(Toplevel):
                     else:
                         z = (list_values[self.name][i]-self.v[i].get())/(self.cb["val"].count(0)-1)
                     for j in range(len(list_values[self.name])):
+                        list_values_vrem = []
                         if j != i and self.cb["val"][j] != 1:
-                            self.v[j].set(self.v[j].get() + z)
+                            list_values_vrem.append(self.v[j].get())
+                        if j != i and self.cb["val"][j] != 1:
+                            if list_values_vrem.count(0) > 0 or list_values_vrem.count(2) > 0:
+                                # self.scale_list[i].configure(state='disabled')
+                                if (list_values_vrem.count(0) > 0 and z > 0) or (list_values_vrem.count(2) > 0 and z < 0):
+                                    self.v[j].set(self.v[j].get() + z)
+                                print(list_values[self.name])
+                                print(i)
+                                self.v[i].set(list_values[self.name][i])
+                            else:
+                                self.v[j].set(self.v[j].get() + z)
                         list_values[self.name][j] = self.v[j].get()
                 else:
                     z = (list_values[self.name][i] - self.v[i].get()) / 365
@@ -330,6 +352,45 @@ class win_setting(Toplevel):
                         list_values[self.name][j] = self.v[j].get()
 
                 break
+    def magic(self, value):
+        const_val = 0
+        no_const_val = 0
+        no_const_list_index = []
+        # max = 4
+        # min = 0
+        # Сначала расчитываем значения которые имеются, фиксированные и не фиксырованные...
+        for i in range(self.num_day, self.num_day + self.num):
+            if self.cb["val"][i] == 1:
+                const_val += self.v[i].get()
+            else:
+                if self.v[i].get() != float(value):
+                    no_const_val += self.v[i].get()
+                    no_const_list_index.append(i)
+
+        ### Расчет минимального и максимального значения ###
+        max = self.num - const_val
+        if self.name == "day":
+            min = self.num - const_val - ((self.cb["val"].count(0)-1) * 4) # 2 - это пока что максимальное значение в днях =4
+        else:
+            min = self.num - const_val - ((self.cb["val"].count(0)-1) * 2) # 2 - это пока что максимальное значение в днях =4
+        # Проблема, значение уходит выше 2 при расчете.
+        # Сделать максимальное и минимальное зназение после которого двигать нельзя!
+        # Сделать расчет с учетом тех значений которые уже использовались.
+        if float(value) >= max or float(value) <= min:
+            for i in range(self.num_day, self.num_day + self.num):
+                if self.v[i].get() == float(value):
+                    self.v[i].set(list_values[self.name][i])
+        else:
+            # Расчёт по формуле чтобы всегда было = 1
+            for i in range(self.num_day, self.num_day + self.num):
+                if self.v[i].get() == float(value):
+                    x = (self.num - float(value) - const_val)# / (self.cb["val"].count(0) - 1) # Определяем какие значения у оставшихся должны быть чтобы всё было == 1
+                    z = (x - no_const_val) / (self.cb["val"].count(0) - 1)
+                    for index in no_const_list_index:
+                        self.v[index].set(self.v[index].get()+z)
+                        list_values[self.name][index] = self.v[index].get()
+                    list_values[self.name][i] = self.v[i].get()
+        self.lable_test.config(text=str(sum(list_values[self.name])/len(list_values[self.name])))
 
     def chart(self):
         fig, ax = plt.subplots()
@@ -347,8 +408,9 @@ class win_setting(Toplevel):
     def default(self):
         for j in range(len(list_values[self.name])):
             self.v[j].set(1.0)
-            # self.cb["box"][j].set(0)
-            # self.cb["val"][j] = 0
+            self.cb["box"][j].set(0)
+            self.cb["val"][j] = 0
+            self.scale_list[j].configure(state='active')
             list_values[self.name][j] = 1.0
 
 ### Дочернее приложение TKinter, открывается дочернее окно с кнопками в которых названия месяцев###

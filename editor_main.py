@@ -64,6 +64,7 @@ class main_app(Tk):
         self.label = Label(self, text="")
         self.year = Entry(self)  # Введите год цифрами
         self.num_people = Entry(self, textvariable=self.test_entry)  # Введите количество человек цифрами, к примеру 2000
+        self.num_people.config(validate="key", validatecommand=(self.num_people.register(self.check_keys), '%P'))
         # self.q_people = Entry(self)  # Введите удельную норму водоотведения на одного жителя (л/сут), цифрами, к примеру 150
         self.center_value_day = Entry(self, textvariable=self.test2_entry)
         self.button = Button(self, text="Произвести расчет", command=self.calculations)
@@ -140,26 +141,29 @@ class main_app(Tk):
         # self.button2.grid(columnspan=3, row=8)
 
     def test(self,q,w,e):#qwe переменные необходимые для работы StringVar()
-        pass
-        # self.test_entry.trace_vdelete("w", self.test_entry.trace_id)
-        # self.test2_entry.trace_vdelete("w", self.test2_entry.trace_id)
-        # # print(self.test_entry.trace_vinfo()[0][1])
-        # # print(self.test_entry.trace_vinfo())
-        # # print(self.test2_entry.trace_vinfo())
-        #
-        # # print(q)
-        # # print(w)
-        # # print(e)
-        # print(self.num_people.get())
-        # try:
-        #     print(self.q_people.get())
-        # except Exception:
-        #     pass
-        # # self.center_value_day.insert(0, str(int(self.center_value_day.get())+1))
-        # self.test_entry.set(str(int(self.num_people.get())+1))
-        # self.test2_entry.set(str(int(self.center_value_day.get())+1))
-        # self.test_entry.trace_id = self.test_entry.trace("w", self.test)
-        # self.test2_entry.trace_id = self.test2_entry.trace("w", self.test)
+        # pass
+        self.test_entry.trace_vdelete("w", self.test_entry.trace_id)
+        self.test2_entry.trace_vdelete("w", self.test2_entry.trace_id)
+        # print(self.test_entry.trace_vinfo()[0][1])
+        # print(self.test_entry.trace_vinfo())
+        # print(self.test2_entry.trace_vinfo())
+
+        # print(q)
+        # print(w)
+        # print(e)
+        print(self.num_people.get())
+        try:
+            print(self.q_people.get())
+        except Exception:
+            pass
+        # self.center_value_day.insert(0, str(int(self.center_value_day.get())+1))
+        self.test_entry.set(str(int(self.num_people.get())+1))
+        if self.center_value_day.get() == '':
+            self.test2_entry.set("1")
+        else:
+            self.test2_entry.set(str(int(self.center_value_day.get())+1))
+        self.test_entry.trace_id = self.test_entry.trace("w", self.test)
+        self.test2_entry.trace_id = self.test2_entry.trace("w", self.test)
 
     def calculations(self):
         self.label['text'] = "                       "
@@ -248,6 +252,12 @@ class main_app(Tk):
             df_year = pd.read_excel(os.path.join(self.application_path, "year.xlsx"))
         list_values["year"] = df_year['k'].to_list()
         list_values["cb_year"] = df_year['chekBox'].to_list()
+
+# Валидация ввода символов в ячейки ввода.
+    def check_keys(self, text):
+        list_punctuation_marks="!@#$%^&*()_-+=[{}]\|/,?><:;'\"`~ "
+        # Не событие вставки или ни один символ в тексте не является буквой
+        return not any(char.isalpha() for char in text) and not any(char in list_punctuation_marks for char in text)
 
 ### Дочернее приложение TKinter, открывается дочернее окно (универсальное)###
 # class win_setting_old(Toplevel):
@@ -589,7 +599,7 @@ class win_setting(Toplevel):
                 self.v.append(DoubleVar())
                 self.cb["box"][i].set(list_values[f"cb_{self.name}"][i])
                 self.cb["entry"].append(Entry(self, width=5, textvariable=self.cb["StringVar"][i]))
-
+                self.cb["entry"][i].config(validate="key", validatecommand=(self.cb["entry"][i].register(self.check_keys), '%P'))
                 self.v[i].set(list_values[self.name][i])
                 l.append(Label(self))
                 if self.name == "day":
@@ -742,7 +752,7 @@ class win_setting(Toplevel):
                             self.v[index].set(self.v[index].get()+z)
                         list_values[self.name][index] = self.v[index].get()
                     list_values[self.name][i] = self.v[i].get()
-        self.lable_test.config(text=str(sum(list_values[self.name])/len(list_values[self.name])))
+        # self.lable_test.config(text=str(sum(list_values[self.name])/len(list_values[self.name])))
 
     def magic(self, value):
         # sleep(0.05)
@@ -796,63 +806,64 @@ class win_setting(Toplevel):
 
 
     # Надо настроить запрет на ввод левых знаков
-    # Надо округлять значения которые записываются в ячейки
     # Надо создать запрет на ввод чисел больше 2 и меньше 0
+    # НАдо поправить Баг с ползунками который возникает если значение ползунков совпадает, ну я там пометил...найди!
+
+    # Проблема, значение уходит выше 2 при расчете.
+    # Сделать максимальное и минимальное зназение после которого двигать нельзя!
+    # Сделать расчет с учетом тех значений которые уже использовались.
 
     def magic_entry(self, idx, q='', w=''):
         const_val = 0
         no_const_val = 0
         no_const_list_index = []
         idx = int(idx)
-        value = round(float(self.cb["entry"][idx].get()), 2)
-        self.v[idx].set(value)
-        # Сначала рассчитываем значение которые имеются, фиксированные и не фиксированные...
-        for i in range(self.num_day, self.num_day + self.num):
-            v_get = round(float(self.cb["entry"][i].get()), 2)
-            # print(v_get)
-            if self.cb["val"][i] == 1:
-                const_val += v_get
-            else:
-                if v_get != value:
-                    no_const_val += v_get
-                    no_const_list_index.append(i)
-
-        ### Расчет минимального и максимального значения ###
-        max = self.num - const_val
-        if self.name == "day":
-            min = self.num - const_val - ((self.cb["val"].count(0)-1) * 4) # 2 - это пока что максимальное значение в днях =4
-        else:
-            min = self.num - const_val - ((self.cb["val"].count(0)-1) * 2) # 2 - это пока что максимальное значение в днях =4
-
-        # Проблема, значение уходит выше 2 при расчете.
-        # Сделать максимальное и минимальное зназение после которого двигать нельзя!
-        # Сделать расчет с учетом тех значений которые уже использовались.
-
-        if value >= max or value <= min:
-            self.cb["StringVar"][idx].trace_vdelete('w', self.cb["StringVar"][idx].trace_id)
-            self.cb["StringVar"][idx].set(str(list_values[self.name][idx]))
-            self.v[idx].set(list_values[self.name][idx])
-            self.cb["StringVar"][idx].trace_id = self.cb["StringVar"][idx].trace('w', self.magic_entry)
-        else:
-            # Расчёт по формуле чтобы всегда было = 1
+        if self.cb["entry"][idx].get() != "" or self.cb["entry"][idx].get() != ".":
+            value = round(float(self.cb["entry"][idx].get()), 2)
+            self.v[idx].set(value)
+            # Сначала рассчитываем значение которые имеются, фиксированные и не фиксированные...
             for i in range(self.num_day, self.num_day + self.num):
-                if i == idx:
-                    x = round(self.num - value - const_val, 2)# / (self.cb["val"].count(0) - 1) # Определяем какие значения у оставшихся должны быть чтобы всё было == 1
-                    z = round((x - no_const_val) / (self.cb["val"].count(0) - 1), 2)
-                    # print("x = ", self.num, "-", value, "-", const_val , "=", x)
-                    # print("z = (", x, "-", no_const_val, ") / (", self.cb["val"].count(0), "- 1) = ",z)
-                    for index in no_const_list_index:
-                        self.cb["StringVar"][index].trace_vdelete('w', self.cb["StringVar"][index].trace_id)
-                        if self.cb["val"].count(0) == 2:
-                            self.cb["StringVar"][index].set(str(x))
-                            self.v[index].set(x)
-                        else:
-                            rez = float(self.cb["StringVar"][index].get()) + z
-                            self.cb["StringVar"][index].set(str(rez))
-                            self.v[index].set(rez)
-                        self.cb["StringVar"][index].trace_id = self.cb["StringVar"][index].trace('w', self.magic_entry)
-                        list_values[self.name][index] = float(self.cb["StringVar"][index].get())
-                    list_values[self.name][i] = float(self.cb["StringVar"][i].get())
+                v_get = round(float(self.cb["entry"][i].get()), 2)
+                # print(v_get)
+                if self.cb["val"][i] == 1:
+                    const_val += v_get
+                else:
+                    if v_get != value:
+                        no_const_val += v_get
+                        no_const_list_index.append(i)
+
+            ### Расчет минимального и максимального значения ###
+            max = self.num - const_val
+            if self.name == "day":
+                min = self.num - const_val - ((self.cb["val"].count(0)-1) * 4) # 2 - это пока что максимальное значение в днях =4
+            else:
+                min = self.num - const_val - ((self.cb["val"].count(0)-1) * 2) # 2 - это пока что максимальное значение в днях =4
+
+            if value >= max or value <= min:
+                self.cb["StringVar"][idx].trace_vdelete('w', self.cb["StringVar"][idx].trace_id)
+                self.cb["StringVar"][idx].set(str(round(list_values[self.name][idx], 2)))
+                self.v[idx].set(round(list_values[self.name][idx], 2))
+                self.cb["StringVar"][idx].trace_id = self.cb["StringVar"][idx].trace('w', self.magic_entry)
+            else:
+                # Расчёт по формуле чтобы всегда было = 1
+                for i in range(self.num_day, self.num_day + self.num):
+                    if i == idx:
+                        x = round(self.num - value - const_val, 2)# / (self.cb["val"].count(0) - 1) # Определяем какие значения у оставшихся должны быть чтобы всё было == 1
+                        z = round((x - no_const_val) / (self.cb["val"].count(0) - 1), 2)
+                        # print("x = ", self.num, "-", value, "-", const_val , "=", x)
+                        # print("z = (", x, "-", no_const_val, ") / (", self.cb["val"].count(0), "- 1) = ",z)
+                        for index in no_const_list_index:
+                            self.cb["StringVar"][index].trace_vdelete('w', self.cb["StringVar"][index].trace_id)
+                            if self.cb["val"].count(0) == 2:
+                                self.cb["StringVar"][index].set(str(x))
+                                self.v[index].set(x)
+                            else:
+                                rez = round(float(self.cb["StringVar"][index].get()) + z, 2)
+                                self.cb["StringVar"][index].set(str(rez))
+                                self.v[index].set(rez)
+                            self.cb["StringVar"][index].trace_id = self.cb["StringVar"][index].trace('w', self.magic_entry)
+                            list_values[self.name][index] = float(self.cb["StringVar"][index].get())
+                        list_values[self.name][i] = float(self.cb["StringVar"][i].get())
 
     def magic_OLD(self, value, idx=False, w=False):#
         # sleep(0.05)
@@ -966,6 +977,14 @@ class win_setting(Toplevel):
         for i in range(self.num_day, self.num_day + self.num):
             self.scale_list[i].configure(state='active')
             self.cb["entry"][i].configure(state='normal')
+
+
+# Валидация ввода символов в ячейки ввода.
+    def check_keys(self, text):
+        list_punctuation_marks="!@#$%^&*()_-+=[{}]\|/,?><:;'\"`~ "
+        # Не событие вставки или ни один символ в тексте не является буквой
+        return not any(char.isalpha() for char in text) and not any(char in list_punctuation_marks for char in text)
+
 
 ### Дочернее приложение TKinter, открывается дочернее окно с кнопками в которых названия месяцев###
 class win_setting_for_year(Toplevel):
@@ -1263,6 +1282,11 @@ def chart(list_x,list_y,label_x, label_y, description, file_name, limit=False, m
         plt.xlim([1, len(list_x)])
     plt.savefig(file_name)
     plt.close()
+
+    def check_keys(text):
+        list_punctuation_marks="!@#$%^&*()_-+=[{}]\|/,?><:;'\"`~"
+        # Не событие вставки или ни один символ в тексте не является буквой
+        return not any(char.isalpha() for char in text) and not any(char in list_punctuation_marks for char in text)
 
 if __name__ == "__main__":
     app = main_app()

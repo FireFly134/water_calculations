@@ -289,22 +289,37 @@ class win_setting(Toplevel):
                 num = int(monthrange(year, m)[1])
                 self.num_day += num
             for j in range(len(list_values["year"])):
+                # Создаём чекбокс
                 self.cb["box"].append(IntVar())
                 self.cb["box"][j].set(list_values["cb_year"][j])
 
                 self.cb["val"].append(list_values["cb_year"][j])  # Вопрос в том, можно ли обойтись без этого?
 
-                self.v.append(DoubleVar())
+                # Создаём ползунок и помещаем туда значение
+                self.v.append(DoubleVar(name=str(j)))
                 self.v[j].set(list_values["year"][j])
+
+                # Создаём переменную для хранения значений с ячейки для ввода и реагирующую на изменения
+                self.cb["StringVar"].append(StringVar(name=str(j)))  # (name=f"index={i}"))
+
             for i in range(self.num_day, self.num_day + self.num):
                 l.append(Label(self))
                 l[i - self.num_day].config(text=str(i - self.num_day + 1))
                 Checkbutton(self, variable=self.cb["box"][i], command=self.magic_checkbox).grid(column=i - self.num_day, row=1,sticky="e")
                 self.scale_list.append(Scale(self, variable=self.v[i], from_=2.0, to=0.0, orient=VERTICAL, resolution=0.01, bd=0, length=300))#, command=self.magic
-                self.scale_list[i - self.num_day].grid(column=i - self.num_day, row=2)
-                l[i - self.num_day].grid(column=i - self.num_day, row=3)
+                self.scale_list[i - self.num_day].grid(column=i - self.num_day, row=3)
+                l[i - self.num_day].grid(column=i - self.num_day, row=2)
+
                 if self.cb["val"][i] == 1:
                     self.scale_list[i - self.num_day].configure(state='disabled')
+                self.cb["entry"].append(Entry(self, width=5, textvariable=self.cb["StringVar"][i]))
+                self.cb["entry"][i - self.num_day].config(validate="key",validatecommand=(self.cb["entry"][i - self.num_day].register(self.check_keys), '%P'))
+                self.cb["entry"][i - self.num_day].grid(column=i - self.num_day, row=4)
+
+            for i in range(self.num_day, self.num_day + self.num):
+                print(i)
+                # self.cb["StringVar"][i].set(round(list_values[self.name][i], 2))
+                self.cb["StringVar"][i].trace_id = self.cb["StringVar"][i].trace('w', self.magic_entry)
         else:
             for i in range(self.num):
                 # Создаём чекбокс
@@ -768,22 +783,27 @@ class win_setting(Toplevel):
         plt.close()
 
     def default(self):
-        for i in range(self.num_day, self.num_day + self.num):
+        for i in range(self.num):
             self.scale_list[i].configure(state='active')
             self.cb["entry"][i].configure(state='normal')
 
         for j in range(len(list_values[self.name])):
-            self.cb["StringVar"][j].trace_vdelete('w', self.cb["StringVar"][j].trace_id)
+            if self.num_day <= j and j < self.num_day + self.num:
+                print(j)
+                print(self.num_day,"<=",j,"<",self.num_day + self.num)
+                self.cb["StringVar"][j].trace_vdelete('w', self.cb["StringVar"][j].trace_id)
             self.v[j].set(1.0)
             self.cb["box"][j].set(0)
             self.cb["val"][j] = 0
             list_values[self.name][j] = 1.0
             # self.cb["StringVar"][j].set("1.0")
-            self.cb["StringVar"][j].trace_id = self.cb["StringVar"][j].trace('w', self.magic_entry)
+            if j >= self.num_day and j <= self.num_day + self.num:
+                self.cb["StringVar"][j].trace_id = self.cb["StringVar"][j].trace('w', self.magic_entry)
 
 # Данное действие необходимо иначе происходит безумие после закрытия онка и открытия другого... хоть и логично что переменные обнуляются но что-то идет не так
     def close_window(self):
-        for i in range(len(self.cb["StringVar"])):
+        # for i in range(len(self.cb["StringVar"])):
+        for i in range(self.num_day, self.num_day + self.num):
             self.cb["StringVar"][i].trace_vdelete('w', self.cb["StringVar"][i].trace_id)
             clear_window()
 

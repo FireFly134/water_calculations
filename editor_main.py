@@ -450,7 +450,7 @@ class win_setting(Toplevel):
                 if self.cb["val"][i] == 1:
                     const_val += v_get
                 else:
-                    if v_get != value:
+                    if idx != i:
                         no_const_val += v_get
                         no_const_list_index.append(i)
 
@@ -489,11 +489,8 @@ class win_setting(Toplevel):
                         # print("z = (", x, "-", no_const_val, ") / (", self.cb["val"].count(0), "- 1) = ",z)
                         for index in no_const_list_index:
                             self.cb["StringVar"][index].trace_vdelete('w', self.cb["StringVar"][index].trace_id)
-                            if self.cb["val"].count(0) == 2:
-                                self.cb["StringVar"][index].set(str(x))
-                            else:
-                                rez = round(float(self.cb["StringVar"][index].get()) + z, 2)
-                                self.cb["StringVar"][index].set(str(rez))
+                            rez = round(float(self.cb["StringVar"][index].get()) + z, 2)
+                            self.cb["StringVar"][index].set(str(rez))
                             self.cb["StringVar"][index].trace_id = self.cb["StringVar"][index].trace('w', self.magic_entry)
                             list_values[self.name][index] = float(self.cb["StringVar"][index].get())
                         list_values[self.name][i] = float(self.cb["StringVar"][i].get())

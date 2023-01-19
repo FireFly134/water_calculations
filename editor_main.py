@@ -259,292 +259,6 @@ class main_app(Tk):
         # Не событие вставки или ни один символ в тексте не является буквой
         return not any(char.isalpha() for char in text) and not any(char in list_punctuation_marks for char in text)
 
-### Дочернее приложение TKinter, открывается дочернее окно (универсальное)###
-# class win_setting_old(Toplevel):
-#     # global v
-#     global list_values
-#     def __init__(self, parent, num, label_x, label_y, description, name, num_month=0):
-#         super().__init__(parent)
-#         self.scale_list = []
-#         self.cb = {"box": [],
-#                    "val": []}
-#         self.v = []
-#         self.num = num # кол-во элементов
-#         self.num_day = 0
-#         self.num_month = num_month
-#         self.label_x = label_x
-#         self.label_y = label_y
-#         self.description = description
-#         self.name = name
-#         self.title(f"Chart_{name}")
-#         self.resizable(width=False, height=False)
-#
-#         win_setting.protocol(self, "WM_DELETE_WINDOW", clear_window)
-#         self.main_class()
-#
-#     def main_class(self):
-#         # if self.num == 24:
-#         #     self.geometry("1070x380")
-#         #     self.resizable(width=False, height=False)
-#         #
-#         # elif self.num == 7:
-#         #     self.geometry("325x380")
-#         #     self.resizable(width=False, height=False)
-#         #
-#         # else:
-#         #     self.resizable(width=False, height=False)
-#
-#         l = []
-#
-#         if self.name == "year":
-#             for m in range(1, self.num_month):
-#                 num = int(monthrange(year, m)[1])
-#                 self.num_day += num
-#             for j in range(len(list_values["year"])):
-#                 self.cb["box"].append(IntVar())
-#                 self.cb["val"].append(list_values["cb_year"][j])  # Вопрос в том, можно ли обойтись без этого?
-#                 self.cb["box"][j].set(list_values["cb_year"][j])
-#                 self.v.append(DoubleVar())
-#                 self.v[j].set(list_values["year"][j])
-#             for i in range(self.num_day, self.num_day + self.num):
-#                 l.append(Label(self))
-#                 l[i - self.num_day].config(text=str(i - self.num_day + 1))
-#                 Checkbutton(self, variable=self.cb["box"][i], command=self.magic_checkbox).grid(column=i - self.num_day, row=1,sticky="e")
-#                 self.scale_list.append(Scale(self, variable=self.v[i], from_=2.0, to=0.0, orient=VERTICAL, resolution=0.01, bd=0, length=300, command=self.magic))
-#                 self.scale_list[i - self.num_day].grid(column=i - self.num_day, row=2)
-#                 l[i - self.num_day].grid(column=i - self.num_day, row=3)
-#                 if self.cb["val"][i] == 1:
-#                     self.scale_list[i - self.num_day].configure(state='disabled')
-#         else:
-#             for i in range(self.num):
-#                 self.cb["box"].append(IntVar())
-#                 self.cb["val"].append(list_values[f"cb_{self.name}"][i]) # Вопрос в том, можно ли обойтись без этого?
-#                 self.v.append(DoubleVar())
-#                 self.cb["box"][i].set(list_values[f"cb_{self.name}"][i])
-#                 self.v[i].set(list_values[self.name][i])
-#                 l.append(Label(self))
-#                 if self.name == "day":
-#                     l[i].config(text=str(i+1)+"ч.")
-#                 else:
-#                     l[i].config(text=str(i + 1))
-#                 if self.name == "day":
-#                     from_scale = 4.0
-#                 else:
-#                     from_scale = 2.0
-#                 Checkbutton(self, variable=self.cb["box"][i], command=self.magic_checkbox).grid(column=i, row=1, sticky="e")
-#                 self.scale_list.append(Scale(self, variable=self.v[i], from_=from_scale, to=0.0, orient=VERTICAL, resolution=0.01, bd=0, length=300, command=self.magic))
-#                 self.scale_list[i].grid(column=i, row=2)
-#                 l[i].grid(column=i, row=3)
-#                 if self.cb["val"][i] == 1:
-#                     self.scale_list[i - self.num_day].configure(state='disabled')
-#
-#         self.button = Button(self, text="Сохранить", command=self.select)
-#         self.button2 = Button(self, text="Закрыть", command=clear_window)
-#         self.button3 = Button(self, text="Сбросить всё на единицы", command=self.default)
-#         # self.button4 = Button(self, text="Отменить всё", command=self.main_class)
-#
-#         self.button.grid(columnspan=55, row=4)
-#         self.button2.grid(columnspan=55, row=5)
-#         self.button3.grid(columnspan=55, row=0, sticky="w")
-#         # self.button4.grid(columnspan=10, column=2, row=0)
-#         # self.lable_test = Label(self)
-#         # self.lable_test.grid(columnspan=55, row=6)
-#     def select(self):
-#         if self.name == "day":
-#             name_column = "hour"
-#         elif self.name == "week":
-#             name_column = "week"
-#         else:
-#             name_column = "day"
-#         rez = {name_column: [],
-#                "k": [],
-#                "chekBox": []
-#                }
-#         for i in range(len(list_values[self.name])): #Нужно ли эта перезапись?
-#             rez[name_column].append(i+1)
-#             rez["k"].append(list_values[self.name][i])
-#             rez["chekBox"].append(self.cb["val"][i])
-#         df = pd.DataFrame(rez)
-#         df.to_excel(f"{os.getcwd()}/{self.name}.xlsx", index=None)
-#
-#         self.list_x = rez[name_column]
-#         self.list_y = rez["k"]
-#         self.file_name = f'excel_chart_{self.name}.jpeg'
-#         self.chart()
-#
-# # отвечает за функционал черкбоксов, отслеживает было ли сделано действие и какое.
-#     def magic_checkbox(self):
-#         # Перебираем все значения
-#         for i in range(self.num_day, self.num_day + self.num):
-#             # Если значение отличается от того какое у нас было записано, то выполняем действие.
-#             if self.cb["box"][i].get() != self.cb["val"][i]:
-#                 # Обязательно следим чтобы осталось не меньше 2х не активированых чекбоксов. Иначе просто не даем нажимать на них.
-#                 if self.cb["val"].count(0) == 2:
-#                     if self.cb["box"][i].get() == 1:
-#                         self.cb["box"][i].set(0)
-#                 # Ну и на реакцию действия деактивируем или активируем возможнось изменения значений. И все фиксируем соответственно.
-#                 if self.cb["box"][i].get() == 0:
-#                     self.cb["val"][i] = 0
-#                     self.scale_list[i - self.num_day].configure(state='active')
-#                 else:
-#                     self.cb["val"][i] = 1
-#                     self.scale_list[i - self.num_day].configure(state='disabled')
-#     # def magic_old(self, value):
-#     #     # print(value)
-#     #     for i in range(self.num_day, self.num_day + self.num):
-#     #         if self.v[i].get() != list_values[self.name][i]:
-#     #             if self.name != "year":
-#     #                 if self.cb["val"].count(1) == 0:
-#     #                     z = (list_values[self.name][i]-self.v[i].get())/(self.num-1)
-#     #                 else:
-#     #                     z = (list_values[self.name][i]-self.v[i].get())/(self.cb["val"].count(0)-1)
-#     #                 for j in range(len(list_values[self.name])):
-#     #                     list_values_vrem = []
-#     #                     if j != i and self.cb["val"][j] != 1:
-#     #                         list_values_vrem.append(self.v[j].get())
-#     #                     if j != i and self.cb["val"][j] != 1:
-#     #                         if list_values_vrem.count(0) > 0 or list_values_vrem.count(2) > 0:
-#     #                             # self.scale_list[i].configure(state='disabled')
-#     #                             if (list_values_vrem.count(0) > 0 and z > 0) or (list_values_vrem.count(2) > 0 and z < 0):
-#     #                                 self.v[j].set(self.v[j].get() + z)
-#     #                             print(list_values[self.name])
-#     #                             print(i)
-#     #                             self.v[i].set(list_values[self.name][i])
-#     #                         else:
-#     #                             self.v[j].set(self.v[j].get() + z)
-#     #                     list_values[self.name][j] = self.v[j].get()
-#     #             else:
-#     #                 z = (list_values[self.name][i] - self.v[i].get()) / 365
-#     #                 for j in range(len(list_values[self.name])):
-#     #                     if j != i:
-#     #                         self.v[j].set(self.v[j].get() + z)
-#     #                     list_values[self.name][j] = self.v[j].get()
-#     #
-#     #             break
-#     def magic_round(self, value):
-#         # sleep(0.05)
-#         const_val = 0
-#         no_const_val = 0
-#         no_const_list_index = []
-#
-#         value = round(float(value), 2)
-#         # Сначала рассчитываем значение которые имеются, фиксированные и не фиксированные...
-#         for i in range(self.num_day, self.num_day + self.num):
-#             v_get = round(self.v[i].get(), 2)
-#             # print(v_get)
-#             if self.cb["val"][i] == 1:
-#                 const_val += v_get
-#             else:
-#                 if v_get != value:
-#                     no_const_val += v_get
-#                     no_const_list_index.append(i)
-#
-#         ### Расчет минимального и максимального значения ###
-#         max = self.num - const_val
-#         if self.name == "day":
-#             min = self.num - const_val - ((self.cb["val"].count(0)-1) * 4) # 2 - это пока что максимальное значение в днях =4
-#         else:
-#             min = self.num - const_val - ((self.cb["val"].count(0)-1) * 2) # 2 - это пока что максимальное значение в днях =4
-#
-#         # Проблема, значение уходит выше 2 при расчете.
-#         # Сделать максимальное и минимальное зназение после которого двигать нельзя!
-#         # Сделать расчет с учетом тех значений которые уже использовались.
-#
-#         if value >= max or value <= min:
-#             for i in range(self.num_day, self.num_day + self.num):
-#                 if round(self.v[i].get(), 2) == value:
-#                     self.v[i].set(list_values[self.name][i])
-#         else:
-#             # Расчёт по формуле чтобы всегда было = 1
-#             for i in range(self.num_day, self.num_day + self.num):
-#                 if round(self.v[i].get(), 2) == value:
-#                     x = round(self.num - value - const_val, 2)# / (self.cb["val"].count(0) - 1) # Определяем какие значения у оставшихся должны быть чтобы всё было == 1
-#                     z = round((x - no_const_val) / (self.cb["val"].count(0) - 1), 2)
-#                     print("x = ", self.num, "-", value, "-", const_val , "=", x)
-#                     print("z = (", x, "-", no_const_val, ") / (", self.cb["val"].count(0), "- 1) = ",z)
-#                     for index in no_const_list_index:
-#                         if self.cb["val"].count(0) == 2:
-#                                 self.v[index].set(x)
-#                         else:
-#                             self.v[index].set(self.v[index].get()+z)
-#                         list_values[self.name][index] = self.v[index].get()
-#                     list_values[self.name][i] = self.v[i].get()
-#         self.lable_test.config(text=str(sum(list_values[self.name])/len(list_values[self.name])))
-#     def magic(self, value):
-#         # sleep(0.05)
-#         const_val = 0
-#         no_const_val = 0
-#         no_const_list_index = []
-#
-#         value = float(value)
-#         # Сначала рассчитываем значение которые имеются, фиксированные и не фиксированные...
-#         for i in range(len(list_values[self.name])):
-#             v_get = self.v[i].get()
-#             # print(v_get)
-#             if self.cb["val"][i] == 1:
-#                 const_val += v_get
-#             else:
-#                 if v_get != value:
-#                     no_const_val += v_get
-#                     no_const_list_index.append(i)
-#
-#         ### Расчет минимального и максимального значения ###
-#         max = self.num - const_val
-#         if self.name == "day":
-#             min = self.num - const_val - ((self.cb["val"].count(0)-1) * 4) # 2 - это пока что максимальное значение в днях =4
-#         else:
-#             min = self.num - const_val - ((self.cb["val"].count(0)-1) * 2) # 2 - это пока что максимальное значение в днях =4
-#
-#         # Проблема, значение уходит выше 2 при расчете.
-#         # Сделать максимальное и минимальное зназение после которого двигать нельзя!
-#         # Сделать расчет с учетом тех значений которые уже использовались.
-#
-#         if value >= max or value <= min:
-#             for i in range(self.num_day, self.num_day + self.num):
-#                 if self.v[i].get() == value:
-#                     self.v[i].set(list_values[self.name][i])
-#         else:
-#             # Расчёт по формуле чтобы всегда было = 1
-#             for i in range(len(list_values[self.name])):
-#                 if self.v[i].get() == value:
-#                     x = len(self.cb["val"]) - value - const_val# / (self.cb["val"].count(0) - 1) # Определяем какие значения у оставшихся должны быть чтобы всё было == 1
-#                     z = (x - no_const_val) / (self.cb["val"].count(0) - 1)
-#                     # print("x = ", len(self.cb["val"]), "-", value, "-", const_val , "=", x)
-#                     # print("z = (", x, "-", no_const_val, ") / (", self.cb["val"].count(0), "- 1) = ",z)
-#                     for index in no_const_list_index:
-#                         if self.cb["val"].count(0) == 2:
-#                                 self.v[index].set(x)
-#                         else:
-#                             self.v[index].set(self.v[index].get()+z)
-#                         list_values[self.name][index] = self.v[index].get()
-#                     list_values[self.name][i] = self.v[i].get()
-#         # self.lable_test.config(text=str(round(sum(list_values[self.name])/len(list_values[self.name]), 3)))
-#
-#     def chart(self):
-#         fig, ax = plt.subplots()
-#         plt.plot(self.list_x, self.list_y, color='red')
-#         fig.autofmt_xdate()
-#         ax.grid()
-#         if self.name == "day":
-#             plt.xlim([1, 24])
-#         ax.set_title(self.description)
-#         plt.ylabel(self.label_y)
-#         plt.xlabel(self.label_x)
-#         plt.savefig(self.file_name)
-#
-#         # plt.text(0, 7, "HELLO!", fontsize=15)
-#         # plt.plot(range(0, 10), range(0, 10))
-#         plt.close()
-#
-#     def default(self):
-#         for j in range(len(list_values[self.name])):
-#             self.v[j].set(1.0)
-#             self.cb["box"][j].set(0)
-#             self.cb["val"][j] = 0
-#             list_values[self.name][j] = 1.0
-#         for i in range(self.num_day, self.num_day + self.num):
-#             self.scale_list[i].configure(state='active')
-
 class win_setting(Toplevel):
     global list_values
     def __init__(self, parent, num, label_x, label_y, description, name, num_month=0):
@@ -565,7 +279,7 @@ class win_setting(Toplevel):
         self.title(f"Chart_{name}")
         self.resizable(width=False, height=False)
 
-        win_setting.protocol(self, "WM_DELETE_WINDOW", clear_window)
+        win_setting.protocol(self, "WM_DELETE_WINDOW", self.close_window)
         self.main_class()
 
     def main_class(self):
@@ -576,51 +290,69 @@ class win_setting(Toplevel):
                 self.num_day += num
             for j in range(len(list_values["year"])):
                 self.cb["box"].append(IntVar())
-                self.cb["val"].append(list_values["cb_year"][j])  # Вопрос в том, можно ли обойтись без этого?
                 self.cb["box"][j].set(list_values["cb_year"][j])
+
+                self.cb["val"].append(list_values["cb_year"][j])  # Вопрос в том, можно ли обойтись без этого?
+
                 self.v.append(DoubleVar())
                 self.v[j].set(list_values["year"][j])
             for i in range(self.num_day, self.num_day + self.num):
                 l.append(Label(self))
                 l[i - self.num_day].config(text=str(i - self.num_day + 1))
                 Checkbutton(self, variable=self.cb["box"][i], command=self.magic_checkbox).grid(column=i - self.num_day, row=1,sticky="e")
-                self.scale_list.append(Scale(self, variable=self.v[i], from_=2.0, to=0.0, orient=VERTICAL, resolution=0.01, bd=0, length=300, command=self.magic))
+                self.scale_list.append(Scale(self, variable=self.v[i], from_=2.0, to=0.0, orient=VERTICAL, resolution=0.01, bd=0, length=300))#, command=self.magic
                 self.scale_list[i - self.num_day].grid(column=i - self.num_day, row=2)
                 l[i - self.num_day].grid(column=i - self.num_day, row=3)
                 if self.cb["val"][i] == 1:
                     self.scale_list[i - self.num_day].configure(state='disabled')
         else:
             for i in range(self.num):
+                # Создаём чекбокс
                 self.cb["box"].append(IntVar())
-                self.cb["StringVar"].append(StringVar(name=str(i)))#(name=f"index={i}"))
-                self.cb["StringVar"][i].set(round(list_values[self.name][i], 2))
-                self.cb["StringVar"][i].trace_id = self.cb["StringVar"][i].trace('w', self.magic_entry)
-                self.cb["val"].append(list_values[f"cb_{self.name}"][i]) # Вопрос в том, можно ли обойтись без этого?
-                self.v.append(DoubleVar())
                 self.cb["box"][i].set(list_values[f"cb_{self.name}"][i])
+
+                # Создаём ползунок и помещаем туда значение
+                self.v.append(DoubleVar(name=str(i)))
+                self.v[i].set(list_values[self.name][i])
+
+                # Создаём переменную для хранения значений с ячейки для ввода и реагирующую на изменения
+                self.cb["StringVar"].append(StringVar(name=str(i)))#(name=f"index={i}"))
+                # self.cb["StringVar"][i].set(round(list_values[self.name][i], 2))
+                # self.cb["StringVar"][i].trace_id = self.cb["StringVar"][i].trace('w', self.magic_entry)
+
+
+                self.cb["val"].append(list_values[f"cb_{self.name}"][i]) # Вопрос в том, можно ли обойтись без этого?
+
+                # Создаём ячейку для ввода
                 self.cb["entry"].append(Entry(self, width=5, textvariable=self.cb["StringVar"][i]))
                 self.cb["entry"][i].config(validate="key", validatecommand=(self.cb["entry"][i].register(self.check_keys), '%P'))
-                self.v[i].set(list_values[self.name][i])
+
                 l.append(Label(self))
-                if self.name == "day":
-                    l[i].config(text=str(i+1)+"ч.")
-                else:
-                    l[i].config(text=str(i + 1))
+
                 if self.name == "day":
                     from_scale = 4.0
+                    l[i].config(text=str(i + 1)+"ч.")
                 else:
                     from_scale = 2.0
+                    l[i].config(text=str(i + 1))
+
                 Checkbutton(self, variable=self.cb["box"][i], command=self.magic_checkbox).grid(column=i, row=1, sticky="e")
-                self.scale_list.append(Scale(self, variable=self.v[i], from_=from_scale, to=0.0, orient=VERTICAL, resolution=0.01, bd=0, length=300, command=self.magic))
-                self.scale_list[i].grid(column=i, row=3)
+
+                self.scale_list.append(Scale(self, variable=self.v[i], from_=from_scale, to=0.0, orient=VERTICAL, resolution=0.01, bd=0, length=300))#, command=self.magic))
                 l[i].grid(column=i, row=2)
+                self.scale_list[i].grid(column=i, row=3)
                 self.cb["entry"][i].grid(column=i, row=4)
                 if self.cb["val"][i] == 1:
                     self.scale_list[i - self.num_day].configure(state='disabled')
                     self.cb["entry"][i - self.num_day].configure(state='disabled')
 
+            # Когда со всеми присваиваю функцию возникает ошибка, а так нет.
+            for i in range(self.num):
+                # self.cb["StringVar"][i].set(round(list_values[self.name][i], 2))
+                self.cb["StringVar"][i].trace_id = self.cb["StringVar"][i].trace('w', self.magic_entry)
+
         self.button = Button(self, text="Сохранить", command=self.select)
-        self.button2 = Button(self, text="Закрыть", command=clear_window)
+        self.button2 = Button(self, text="Закрыть", command=self.close_window)
         self.button3 = Button(self, text="Сбросить всё на единицы", command=self.default)
         # self.button4 = Button(self, text="Отменить всё", command=self.main_class)
 
@@ -704,127 +436,17 @@ class win_setting(Toplevel):
     #                     list_values[self.name][j] = self.v[j].get()
     #
     #             break
-    def magic_round(self, value):
-        # sleep(0.05)
-        const_val = 0
-        no_const_val = 0
-        no_const_list_index = []
-
-        value = round(float(value), 2)
-        # Сначала рассчитываем значение которые имеются, фиксированные и не фиксированные...
-        for i in range(self.num_day, self.num_day + self.num):
-            v_get = round(self.v[i].get(), 2)
-            # print(v_get)
-            if self.cb["val"][i] == 1:
-                const_val += v_get
-            else:
-                if v_get != value:
-                    no_const_val += v_get
-                    no_const_list_index.append(i)
-
-        ### Расчет минимального и максимального значения ###
-        max = self.num - const_val
-        if self.name == "day":
-            min = self.num - const_val - ((self.cb["val"].count(0)-1) * 4) # 2 - это пока что максимальное значение в днях =4
-        else:
-            min = self.num - const_val - ((self.cb["val"].count(0)-1) * 2) # 2 - это пока что максимальное значение в днях =4
-
-        # Проблема, значение уходит выше 2 при расчете.
-        # Сделать максимальное и минимальное зназение после которого двигать нельзя!
-        # Сделать расчет с учетом тех значений которые уже использовались.
-
-        if value >= max or value <= min:
-            for i in range(self.num_day, self.num_day + self.num):
-                if round(self.v[i].get(), 2) == value:
-                    self.v[i].set(list_values[self.name][i])
-        else:
-            # Расчёт по формуле чтобы всегда было = 1
-            for i in range(self.num_day, self.num_day + self.num):
-                if round(self.v[i].get(), 2) == value:
-                    x = round(self.num - value - const_val, 2)# / (self.cb["val"].count(0) - 1) # Определяем какие значения у оставшихся должны быть чтобы всё было == 1
-                    z = round((x - no_const_val) / (self.cb["val"].count(0) - 1), 2)
-                    print("x = ", self.num, "-", value, "-", const_val , "=", x)
-                    print("z = (", x, "-", no_const_val, ") / (", self.cb["val"].count(0), "- 1) = ",z)
-                    for index in no_const_list_index:
-                        if self.cb["val"].count(0) == 2:
-                                self.v[index].set(x)
-                        else:
-                            self.v[index].set(self.v[index].get()+z)
-                        list_values[self.name][index] = self.v[index].get()
-                    list_values[self.name][i] = self.v[i].get()
-        # self.lable_test.config(text=str(sum(list_values[self.name])/len(list_values[self.name])))
-
-    def magic(self, value):
-        # sleep(0.05)
-        const_val = 0
-        no_const_val = 0
-        no_const_list_index = []
-
-        value = round(float(value), 2)
-        # Сначала рассчитываем значение которые имеются, фиксированные и не фиксированные...
-        for i in range(self.num_day, self.num_day + self.num):
-            v_get = round(self.v[i].get(), 2)
-            # print(v_get)
-            if self.cb["val"][i] == 1:
-                const_val += v_get
-            else:
-                if v_get != value:
-                    no_const_val += v_get
-                    no_const_list_index.append(i)
-
-        ### Расчет минимального и максимального значения ###
-        max = self.num - const_val
-        if self.name == "day":
-            min = self.num - const_val - ((self.cb["val"].count(0)-1) * 4) # 2 - это пока что максимальное значение в днях =4
-        else:
-            min = self.num - const_val - ((self.cb["val"].count(0)-1) * 2) # 2 - это пока что максимальное значение в днях =4
-
-        # Проблема, значение уходит выше 2 при расчете.
-        # Сделать максимальное и минимальное зназение после которого двигать нельзя!
-        # Сделать расчет с учетом тех значений которые уже использовались.
-
-        if value >= max or value <= min:
-            # Подозреваю что тут сбой
-            for i in range(self.num_day, self.num_day + self.num):
-                if round(self.v[i].get(), 2) == value:
-                    self.v[i].set(list_values[self.name][i])
-        else:
-            # Расчёт по формуле чтобы всегда было = 1
-            for i in range(self.num_day, self.num_day + self.num):
-                if round(self.v[i].get(), 2) == value:
-                    x = round(self.num - value - const_val, 2)# / (self.cb["val"].count(0) - 1) # Определяем какие значения у оставшихся должны быть чтобы всё было == 1
-                    z = round((x - no_const_val) / (self.cb["val"].count(0) - 1), 2)
-                    # print("x = ", self.num, "-", value, "-", const_val , "=", x)
-                    # print("z = (", x, "-", no_const_val, ") / (", self.cb["val"].count(0), "- 1) = ",z)
-                    for index in no_const_list_index:
-                        if self.cb["val"].count(0) == 2:
-                                self.v[index].set(x)
-                        else:
-                            self.v[index].set(self.v[index].get()+z)
-                        list_values[self.name][index] = self.v[index].get()
-                    list_values[self.name][i] = self.v[i].get()
-
-
-    # Надо настроить запрет на ввод левых знаков
-    # Надо создать запрет на ввод чисел больше 2 и меньше 0
-    # НАдо поправить Баг с ползунками который возникает если значение ползунков совпадает, ну я там пометил...найди!
-
-    # Проблема, значение уходит выше 2 при расчете.
-    # Сделать максимальное и минимальное зназение после которого двигать нельзя!
-    # Сделать расчет с учетом тех значений которые уже использовались.
 
     def magic_entry(self, idx, q='', w=''):
         const_val = 0
         no_const_val = 0
         no_const_list_index = []
         idx = int(idx)
-        if self.cb["entry"][idx].get() != "" or self.cb["entry"][idx].get() != ".":
-            value = round(float(self.cb["entry"][idx].get()), 2)
-            self.v[idx].set(value)
+        if str(self.cb["StringVar"][idx].get()) != "" and str(self.cb["StringVar"][idx].get()) != ".":
+            value = round(float(self.cb["StringVar"][idx].get()), 2)
             # Сначала рассчитываем значение которые имеются, фиксированные и не фиксированные...
             for i in range(self.num_day, self.num_day + self.num):
-                v_get = round(float(self.cb["entry"][i].get()), 2)
-                # print(v_get)
+                v_get = round(float(self.cb["StringVar"][i].get()), 2)
                 if self.cb["val"][i] == 1:
                     const_val += v_get
                 else:
@@ -835,14 +457,27 @@ class win_setting(Toplevel):
             ### Расчет минимального и максимального значения ###
             max = self.num - const_val
             if self.name == "day":
-                min = self.num - const_val - ((self.cb["val"].count(0)-1) * 4) # 2 - это пока что максимальное значение в днях =4
+                max_value_DoubleVar = 4
+                min = self.num - const_val - ((self.cb["val"].count(0)-1) * max_value_DoubleVar) # 2 - это пока что максимальное значение в днях =4
             else:
-                min = self.num - const_val - ((self.cb["val"].count(0)-1) * 2) # 2 - это пока что максимальное значение в днях =4
+                max_value_DoubleVar = 2
+                min = self.num - const_val - ((self.cb["val"].count(0)-1) * max_value_DoubleVar) # 2 - это пока что максимальное значение в днях =4
 
-            if value >= max or value <= min:
+            if value < min and self.cb["val"].count(0) == 2:
                 self.cb["StringVar"][idx].trace_vdelete('w', self.cb["StringVar"][idx].trace_id)
+                self.cb["StringVar"][idx].set(str(round(min, 2)))
+                self.cb["StringVar"][idx].trace_id = self.cb["StringVar"][idx].trace('w', self.magic_entry)
+                value = round(min, 2)
+            if value > max and self.cb["val"].count(0) == 2:
+                self.cb["StringVar"][idx].trace_vdelete('w', self.cb["StringVar"][idx].trace_id)
+                self.cb["StringVar"][idx].set(str(round(max, 2)))
+                self.cb["StringVar"][idx].trace_id = self.cb["StringVar"][idx].trace('w', self.magic_entry)
+                value = round(max, 2)
+            if (value >= max or value < min):
+                self.cb["StringVar"][idx].trace_vdelete('w', self.cb["StringVar"][idx].trace_id)
+                # if value == max_value_DoubleVar:
+                #     self.cb["StringVar"][idx].set(str(round(self.num - value - const_val, 2)))
                 self.cb["StringVar"][idx].set(str(round(list_values[self.name][idx], 2)))
-                self.v[idx].set(round(list_values[self.name][idx], 2))
                 self.cb["StringVar"][idx].trace_id = self.cb["StringVar"][idx].trace('w', self.magic_entry)
             else:
                 # Расчёт по формуле чтобы всегда было = 1
@@ -856,98 +491,268 @@ class win_setting(Toplevel):
                             self.cb["StringVar"][index].trace_vdelete('w', self.cb["StringVar"][index].trace_id)
                             if self.cb["val"].count(0) == 2:
                                 self.cb["StringVar"][index].set(str(x))
-                                self.v[index].set(x)
                             else:
                                 rez = round(float(self.cb["StringVar"][index].get()) + z, 2)
                                 self.cb["StringVar"][index].set(str(rez))
-                                self.v[index].set(rez)
                             self.cb["StringVar"][index].trace_id = self.cb["StringVar"][index].trace('w', self.magic_entry)
                             list_values[self.name][index] = float(self.cb["StringVar"][index].get())
                         list_values[self.name][i] = float(self.cb["StringVar"][i].get())
 
-    def magic_OLD(self, value, idx=False, w=False):#
-        # sleep(0.05)
-        # try:
-            const_val = 0
-            no_const_val = 0
-            no_const_list_index = []
-            index=-1994
-            # print(value)
-            if "index=" in value:
-                index = int(value.replace("index=",""))
-                value = float(self.cb["entry"][index].get())
-                idx=True
-            else:
-                value = float(value)
-            # print(value)
-            # Сначала рассчитываем значение которые имеются, фиксированные и не фиксированные...
-            for i in range(len(list_values[self.name])):
-                v_get = self.v[i].get()
-                # print(v_get)
-                if self.cb["val"][i] == 1:
-                    const_val += v_get
-                else:
-                    if v_get != value:
-                        no_const_val += v_get
-                        no_const_list_index.append(i)
-
-            ### Расчет минимального и максимального значения ###
-            max = self.num - const_val
-            if self.name == "day":
-                min = self.num - const_val - ((self.cb["val"].count(0)-1) * 4) # 2 - это пока что максимальное значение в днях =4
-            else:
-                min = self.num - const_val - ((self.cb["val"].count(0)-1) * 2) # 2 - это пока что максимальное значение в днях =4
-
-            # Проблема, значение уходит выше 2 при расчете.
-            # Сделать максимальное и минимальное зназение после которого двигать нельзя!
-            # Сделать расчет с учетом тех значений которые уже использовались.
-
-            if value > max or value < min:
-                for i in range(self.num_day, self.num_day + self.num):
-                    if self.v[i].get() == value:
-                        self.v[i].set(list_values[self.name][i])
-                        break
-                if idx:
-                    print(max)
-                    print(min)
-                    self.cb["StringVar"][index].trace_vdelete('w', self.cb["StringVar"][index].trace_id)
-                    self.cb["StringVar"][index].set(self.v[index].get())
-                    self.cb["StringVar"][index].trace_id = self.cb["StringVar"][index].trace('w', self.magic)
-            else:
-                if idx:
-                    self.v[index].set(value)
-                # Расчёт по формуле чтобы всегда было = 1
-                for i in range(len(list_values[self.name])):
-                    if self.v[i].get() == value:
-                        x = len(self.cb["val"]) - value - const_val# / (self.cb["val"].count(0) - 1) # Определяем какие значения у оставшихся должны быть чтобы всё было == 1
-                        z = (x - no_const_val) / (self.cb["val"].count(0) - 1)
-                        if not idx:
-                            self.cb["StringVar"][i].trace_vdelete('w', self.cb["StringVar"][i].trace_id)
-                            self.cb["StringVar"][i].set(self.v[i].get())
-                            self.cb["StringVar"][i].trace_id = self.cb["StringVar"][i].trace('w', self.magic)
-                        # print("x = ", len(self.cb["val"]), "-", value, "-", const_val , "=", x)
-                        # print("z = (", x, "-", no_const_val, ") / (", self.cb["val"].count(0), "- 1) = ",z)
-
-                        for index in no_const_list_index:
-                            if self.cb["val"].count(0) == 2:
-                                    self.v[index].set(x)
-                                    self.cb["StringVar"][index].trace_vdelete('w', self.cb["StringVar"][index].trace_id)
-                                    # self.cb["entry"][i].delete(0, END)
-                                    # self.cb["entry"][i].insert(0, str(round(self.v[index].get() + z,2)))
-                                    self.cb["StringVar"][index].set(round(x, 2))
-                                    self.cb["StringVar"][index].trace_id = self.cb["StringVar"][index].trace('w',self.magic)
-                            else:
-                                self.v[index].set(self.v[index].get() + z)
-                                self.cb["StringVar"][index].trace_vdelete('w', self.cb["StringVar"][index].trace_id)
-                                # self.cb["entry"][i].delete(0, END)
-                                # self.cb["entry"][i].insert(0, str(round(self.v[index].get() + z,2)))
-                                self.cb["StringVar"][index].set(self.v[index].get() + z)
-                                self.cb["StringVar"][index].trace_id = self.cb["StringVar"][index].trace('w', self.magic)
-                            list_values[self.name][index] = self.v[index].get()
-                        list_values[self.name][i] = self.v[i].get()
-        # except TclError:
-        #     pass
-        # self.lable_test.config(text=str(round(sum(list_values[self.name])/len(list_values[self.name]), 3)))
+    # def magic_round(self, value):
+    #     # sleep(0.05)
+    #     const_val = 0
+    #     no_const_val = 0
+    #     no_const_list_index = []
+    #
+    #     value = round(float(value), 2)
+    #     # Сначала рассчитываем значение которые имеются, фиксированные и не фиксированные...
+    #     for i in range(self.num_day, self.num_day + self.num):
+    #         v_get = round(self.v[i].get(), 2)
+    #         # print(v_get)
+    #         if self.cb["val"][i] == 1:
+    #             const_val += v_get
+    #         else:
+    #             if v_get != value:
+    #                 no_const_val += v_get
+    #                 no_const_list_index.append(i)
+    #
+    #     ### Расчет минимального и максимального значения ###
+    #     max = self.num - const_val
+    #     if self.name == "day":
+    #         min = self.num - const_val - ((self.cb["val"].count(0)-1) * 4) # 2 - это пока что максимальное значение в днях =4
+    #     else:
+    #         min = self.num - const_val - ((self.cb["val"].count(0)-1) * 2) # 2 - это пока что максимальное значение в днях =4
+    #
+    #     # Проблема, значение уходит выше 2 при расчете.
+    #     # Сделать максимальное и минимальное зназение после которого двигать нельзя!
+    #     # Сделать расчет с учетом тех значений которые уже использовались.
+    #
+    #     if value >= max or value <= min:
+    #         for i in range(self.num_day, self.num_day + self.num):
+    #             if round(self.v[i].get(), 2) == value:
+    #                 self.v[i].set(list_values[self.name][i])
+    #     else:
+    #         # Расчёт по формуле чтобы всегда было = 1
+    #         for i in range(self.num_day, self.num_day + self.num):
+    #             if round(self.v[i].get(), 2) == value:
+    #                 x = round(self.num - value - const_val, 2)# / (self.cb["val"].count(0) - 1) # Определяем какие значения у оставшихся должны быть чтобы всё было == 1
+    #                 z = round((x - no_const_val) / (self.cb["val"].count(0) - 1), 2)
+    #                 print("x = ", self.num, "-", value, "-", const_val , "=", x)
+    #                 print("z = (", x, "-", no_const_val, ") / (", self.cb["val"].count(0), "- 1) = ",z)
+    #                 for index in no_const_list_index:
+    #                     if self.cb["val"].count(0) == 2:
+    #                             self.v[index].set(x)
+    #                     else:
+    #                         self.v[index].set(self.v[index].get()+z)
+    #                     list_values[self.name][index] = self.v[index].get()
+    #                 list_values[self.name][i] = self.v[i].get()
+    #     # self.lable_test.config(text=str(sum(list_values[self.name])/len(list_values[self.name])))
+    #
+    # # def magic(self, value):
+    # #     print(self.name)
+    # #     print(value)
+    # #     # sleep(0.05)
+    # #     const_val = 0
+    # #     no_const_val = 0
+    # #     no_const_list_index = []
+    # #
+    # #     value = round(float(value), 2)
+    # #     # Сначала рассчитываем значение которые имеются, фиксированные и не фиксированные...
+    # #     for i in range(self.num_day, self.num_day + self.num):
+    # #         v_get = round(self.v[i].get(), 2)
+    # #         # print(v_get)
+    # #         if self.cb["val"][i] == 1:
+    # #             const_val += v_get
+    # #         else:
+    # #             if v_get != value:
+    # #                 no_const_val += v_get
+    # #                 no_const_list_index.append(i)
+    # #
+    # #     ### Расчет минимального и максимального значения ###
+    # #     max = self.num - const_val
+    # #     if self.name == "day":
+    # #         min = self.num - const_val - ((self.cb["val"].count(0)-1) * 4) # 2 - это пока что максимальное значение в днях =4
+    # #     else:
+    # #         min = self.num - const_val - ((self.cb["val"].count(0)-1) * 2) # 2 - это пока что максимальное значение в днях =4
+    # #
+    # #     # Проблема, значение уходит выше 2 при расчете.
+    # #     # Сделать максимальное и минимальное зназение после которого двигать нельзя!
+    # #     # Сделать расчет с учетом тех значений которые уже использовались.
+    # #
+    # #     if value >= max or value <= min:
+    # #         # Подозреваю что тут сбой
+    # #         for i in range(self.num_day, self.num_day + self.num):
+    # #             if round(self.v[i].get(), 2) == value:
+    # #                 self.v[i].set(list_values[self.name][i])
+    # #     else:
+    # #         # Расчёт по формуле чтобы всегда было = 1
+    # #         for i in range(self.num_day, self.num_day + self.num):
+    # #             if round(self.v[i].get(), 2) == value:
+    # #                 x = round(self.num - value - const_val, 2)# / (self.cb["val"].count(0) - 1) # Определяем какие значения у оставшихся должны быть чтобы всё было == 1
+    # #                 z = round((x - no_const_val) / (self.cb["val"].count(0) - 1), 2)
+    # #                 # print("x = ", self.num, "-", value, "-", const_val , "=", x)
+    # #                 # print("z = (", x, "-", no_const_val, ") / (", self.cb["val"].count(0), "- 1) = ",z)
+    # #                 for index in no_const_list_index:
+    # #                     if self.cb["val"].count(0) == 2:
+    # #                             self.v[index].set(x)
+    # #                     else:
+    # #                         self.v[index].set(self.v[index].get()+z)
+    # #                     list_values[self.name][index] = self.v[index].get()
+    # #                 list_values[self.name][i] = self.v[i].get()
+    #
+    # # Надо создать запрет на ввод чисел больше 2 и меньше 0
+    # # НАдо поправить Баг с ползунками который возникает если значение ползунков совпадает, ну я там пометил...найди!
+    #
+    # # Проблема, значение уходит выше 2 при расчете.
+    # # Сделать максимальное и минимальное зназение после которого двигать нельзя!
+    # # Сделать расчет с учетом тех значений которые уже использовались.
+    #
+    # def magic_entry_OLD(self, idx, q='', w=''):
+    #     const_val = 0
+    #     no_const_val = 0
+    #     no_const_list_index = []
+    #     idx = int(idx)
+    #     if str(self.cb["entry"][idx].get()) != "" and str(self.cb["entry"][idx].get()) != ".":
+    #         value = round(float(self.cb["entry"][idx].get()), 2)
+    #         self.v[idx].set(value)
+    #         # Сначала рассчитываем значение которые имеются, фиксированные и не фиксированные...
+    #         for i in range(self.num_day, self.num_day + self.num):
+    #             v_get = round(float(self.cb["entry"][i].get()), 2)
+    #             # print(v_get)
+    #             if self.cb["val"][i] == 1:
+    #                 const_val += v_get
+    #             else:
+    #                 if v_get != value:
+    #                     no_const_val += v_get
+    #                     no_const_list_index.append(i)
+    #
+    #         ### Расчет минимального и максимального значения ###
+    #         max = self.num - const_val
+    #         if self.name == "day":
+    #             max_value_DoubleVar = 4
+    #             min = self.num - const_val - ((self.cb["val"].count(0)-1) * max_value_DoubleVar) # 2 - это пока что максимальное значение в днях =4
+    #         else:
+    #             max_value_DoubleVar = 2
+    #             min = self.num - const_val - ((self.cb["val"].count(0)-1) * max_value_DoubleVar) # 2 - это пока что максимальное значение в днях =4
+    #
+    #         if value < min and self.cb["val"].count(0) == 2:
+    #             self.cb["StringVar"][idx].set(str(round(min, 2)))
+    #             self.v[idx].set(round(min, 2))
+    #             value = round(min, 2)
+    #         if value > max and self.cb["val"].count(0) == 2:
+    #             self.cb["StringVar"][idx].set(str(round(max, 2)))
+    #             self.v[idx].set(round(max, 2))
+    #             value = round(max, 2)
+    #         if (value >= max or value < min):
+    #             self.cb["StringVar"][idx].trace_vdelete('w', self.cb["StringVar"][idx].trace_id)
+    #             # if value == max_value_DoubleVar:
+    #             #     self.cb["StringVar"][idx].set(str(round(self.num - value - const_val, 2)))
+    #             self.cb["StringVar"][idx].set(str(round(list_values[self.name][idx], 2)))
+    #             self.v[idx].set(round(list_values[self.name][idx], 2))
+    #             self.cb["StringVar"][idx].trace_id = self.cb["StringVar"][idx].trace('w', self.magic_entry)
+    #         else:
+    #             # Расчёт по формуле чтобы всегда было = 1
+    #             for i in range(self.num_day, self.num_day + self.num):
+    #                 if i == idx:
+    #                     x = round(self.num - value - const_val, 2)# / (self.cb["val"].count(0) - 1) # Определяем какие значения у оставшихся должны быть чтобы всё было == 1
+    #                     z = round((x - no_const_val) / (self.cb["val"].count(0) - 1), 2)
+    #                     # print("x = ", self.num, "-", value, "-", const_val , "=", x)
+    #                     # print("z = (", x, "-", no_const_val, ") / (", self.cb["val"].count(0), "- 1) = ",z)
+    #                     for index in no_const_list_index:
+    #                         self.cb["StringVar"][index].trace_vdelete('w', self.cb["StringVar"][index].trace_id)
+    #                         if self.cb["val"].count(0) == 2:
+    #                             self.cb["StringVar"][index].set(str(x))
+    #                             self.v[index].set(x)
+    #                         else:
+    #                             rez = round(float(self.cb["StringVar"][index].get()) + z, 2)
+    #                             self.cb["StringVar"][index].set(str(rez))
+    #                             self.v[index].set(rez)
+    #                         self.cb["StringVar"][index].trace_id = self.cb["StringVar"][index].trace('w', self.magic_entry)
+    #                         list_values[self.name][index] = float(self.cb["StringVar"][index].get())
+    #                     list_values[self.name][i] = float(self.cb["StringVar"][i].get())
+    # def magic_OLD(self, value, idx=False, w=False):#
+    #     # sleep(0.05)
+    #     # try:
+    #         const_val = 0
+    #         no_const_val = 0
+    #         no_const_list_index = []
+    #         index=-1994
+    #         # print(value)
+    #         if "index=" in value:
+    #             index = int(value.replace("index=",""))
+    #             value = float(self.cb["entry"][index].get())
+    #             idx=True
+    #         else:
+    #             value = float(value)
+    #         # print(value)
+    #         # Сначала рассчитываем значение которые имеются, фиксированные и не фиксированные...
+    #         for i in range(len(list_values[self.name])):
+    #             v_get = self.v[i].get()
+    #             # print(v_get)
+    #             if self.cb["val"][i] == 1:
+    #                 const_val += v_get
+    #             else:
+    #                 if v_get != value:
+    #                     no_const_val += v_get
+    #                     no_const_list_index.append(i)
+    #
+    #         ### Расчет минимального и максимального значения ###
+    #         max = self.num - const_val
+    #         if self.name == "day":
+    #             min = self.num - const_val - ((self.cb["val"].count(0)-1) * 4) # 2 - это пока что максимальное значение в днях =4
+    #         else:
+    #             min = self.num - const_val - ((self.cb["val"].count(0)-1) * 2) # 2 - это пока что максимальное значение в днях =4
+    #
+    #         # Проблема, значение уходит выше 2 при расчете.
+    #         # Сделать максимальное и минимальное зназение после которого двигать нельзя!
+    #         # Сделать расчет с учетом тех значений которые уже использовались.
+    #
+    #         if value > max or value < min:
+    #             for i in range(self.num_day, self.num_day + self.num):
+    #                 if self.v[i].get() == value:
+    #                     self.v[i].set(list_values[self.name][i])
+    #                     break
+    #             if idx:
+    #                 print(max)
+    #                 print(min)
+    #                 self.cb["StringVar"][index].trace_vdelete('w', self.cb["StringVar"][index].trace_id)
+    #                 self.cb["StringVar"][index].set(self.v[index].get())
+    #                 self.cb["StringVar"][index].trace_id = self.cb["StringVar"][index].trace('w', self.magic)
+    #         else:
+    #             if idx:
+    #                 self.v[index].set(value)
+    #             # Расчёт по формуле чтобы всегда было = 1
+    #             for i in range(len(list_values[self.name])):
+    #                 if self.v[i].get() == value:
+    #                     x = len(self.cb["val"]) - value - const_val# / (self.cb["val"].count(0) - 1) # Определяем какие значения у оставшихся должны быть чтобы всё было == 1
+    #                     z = (x - no_const_val) / (self.cb["val"].count(0) - 1)
+    #                     if not idx:
+    #                         self.cb["StringVar"][i].trace_vdelete('w', self.cb["StringVar"][i].trace_id)
+    #                         self.cb["StringVar"][i].set(self.v[i].get())
+    #                         self.cb["StringVar"][i].trace_id = self.cb["StringVar"][i].trace('w', self.magic)
+    #                     # print("x = ", len(self.cb["val"]), "-", value, "-", const_val , "=", x)
+    #                     # print("z = (", x, "-", no_const_val, ") / (", self.cb["val"].count(0), "- 1) = ",z)
+    #
+    #                     for index in no_const_list_index:
+    #                         if self.cb["val"].count(0) == 2:
+    #                                 self.v[index].set(x)
+    #                                 self.cb["StringVar"][index].trace_vdelete('w', self.cb["StringVar"][index].trace_id)
+    #                                 # self.cb["entry"][i].delete(0, END)
+    #                                 # self.cb["entry"][i].insert(0, str(round(self.v[index].get() + z,2)))
+    #                                 self.cb["StringVar"][index].set(round(x, 2))
+    #                                 self.cb["StringVar"][index].trace_id = self.cb["StringVar"][index].trace('w',self.magic)
+    #                         else:
+    #                             self.v[index].set(self.v[index].get() + z)
+    #                             self.cb["StringVar"][index].trace_vdelete('w', self.cb["StringVar"][index].trace_id)
+    #                             # self.cb["entry"][i].delete(0, END)
+    #                             # self.cb["entry"][i].insert(0, str(round(self.v[index].get() + z,2)))
+    #                             self.cb["StringVar"][index].set(self.v[index].get() + z)
+    #                             self.cb["StringVar"][index].trace_id = self.cb["StringVar"][index].trace('w', self.magic)
+    #                         list_values[self.name][index] = self.v[index].get()
+    #                     list_values[self.name][i] = self.v[i].get()
+    #     # except TclError:
+    #     #     pass
+    #     # self.lable_test.config(text=str(round(sum(list_values[self.name])/len(list_values[self.name]), 3)))
 
     def chart(self):
         fig, ax = plt.subplots()
@@ -966,17 +771,24 @@ class win_setting(Toplevel):
         plt.close()
 
     def default(self):
+        for i in range(self.num_day, self.num_day + self.num):
+            self.scale_list[i].configure(state='active')
+            self.cb["entry"][i].configure(state='normal')
+
         for j in range(len(list_values[self.name])):
+            self.cb["StringVar"][j].trace_vdelete('w', self.cb["StringVar"][j].trace_id)
             self.v[j].set(1.0)
             self.cb["box"][j].set(0)
             self.cb["val"][j] = 0
             list_values[self.name][j] = 1.0
-            self.cb["StringVar"][j].trace_vdelete('w', self.cb["StringVar"][j].trace_id)
-            self.cb["StringVar"][j].set("1.0")
+            # self.cb["StringVar"][j].set("1.0")
             self.cb["StringVar"][j].trace_id = self.cb["StringVar"][j].trace('w', self.magic_entry)
-        for i in range(self.num_day, self.num_day + self.num):
-            self.scale_list[i].configure(state='active')
-            self.cb["entry"][i].configure(state='normal')
+
+# Данное действие необходимо иначе происходит безумие после закрытия онка и открытия другого... хоть и логично что переменные обнуляются но что-то идет не так
+    def close_window(self):
+        for i in range(len(self.cb["StringVar"])):
+            self.cb["StringVar"][i].trace_vdelete('w', self.cb["StringVar"][i].trace_id)
+            clear_window()
 
 
 # Валидация ввода символов в ячейки ввода.
@@ -984,7 +796,6 @@ class win_setting(Toplevel):
         list_punctuation_marks="!@#$%^&*()_-+=[{}]\|/,?><:;'\"`~ "
         # Не событие вставки или ни один символ в тексте не является буквой
         return not any(char.isalpha() for char in text) and not any(char in list_punctuation_marks for char in text)
-
 
 ### Дочернее приложение TKinter, открывается дочернее окно с кнопками в которых названия месяцев###
 class win_setting_for_year(Toplevel):

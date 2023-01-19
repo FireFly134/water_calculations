@@ -141,29 +141,29 @@ class main_app(Tk):
         # self.button2.grid(columnspan=3, row=8)
 
     def test(self,q,w,e):#qwe переменные необходимые для работы StringVar()
-        # pass
-        self.test_entry.trace_vdelete("w", self.test_entry.trace_id)
-        self.test2_entry.trace_vdelete("w", self.test2_entry.trace_id)
-        # print(self.test_entry.trace_vinfo()[0][1])
-        # print(self.test_entry.trace_vinfo())
-        # print(self.test2_entry.trace_vinfo())
-
-        # print(q)
-        # print(w)
-        # print(e)
-        print(self.num_people.get())
-        try:
-            print(self.q_people.get())
-        except Exception:
-            pass
-        # self.center_value_day.insert(0, str(int(self.center_value_day.get())+1))
-        self.test_entry.set(str(int(self.num_people.get())+1))
-        if self.center_value_day.get() == '':
-            self.test2_entry.set("1")
-        else:
-            self.test2_entry.set(str(int(self.center_value_day.get())+1))
-        self.test_entry.trace_id = self.test_entry.trace("w", self.test)
-        self.test2_entry.trace_id = self.test2_entry.trace("w", self.test)
+        pass
+        # self.test_entry.trace_vdelete("w", self.test_entry.trace_id)
+        # self.test2_entry.trace_vdelete("w", self.test2_entry.trace_id)
+        # # print(self.test_entry.trace_vinfo()[0][1])
+        # # print(self.test_entry.trace_vinfo())
+        # # print(self.test2_entry.trace_vinfo())
+        #
+        # # print(q)
+        # # print(w)
+        # # print(e)
+        # print(self.num_people.get())
+        # try:
+        #     print(self.q_people.get())
+        # except Exception:
+        #     pass
+        # # self.center_value_day.insert(0, str(int(self.center_value_day.get())+1))
+        # self.test_entry.set(str(int(self.num_people.get())+1))
+        # if self.center_value_day.get() == '':
+        #     self.test2_entry.set("1")
+        # else:
+        #     self.test2_entry.set(str(int(self.center_value_day.get())+1))
+        # self.test_entry.trace_id = self.test_entry.trace("w", self.test)
+        # self.test2_entry.trace_id = self.test2_entry.trace("w", self.test)
 
     def calculations(self):
         self.label['text'] = "                       "
@@ -317,7 +317,6 @@ class win_setting(Toplevel):
                 self.cb["entry"][i - self.num_day].grid(column=i - self.num_day, row=4)
 
             for i in range(self.num_day, self.num_day + self.num):
-                print(i)
                 # self.cb["StringVar"][i].set(round(list_values[self.name][i], 2))
                 self.cb["StringVar"][i].trace_id = self.cb["StringVar"][i].trace('w', self.magic_entry)
         else:
@@ -460,7 +459,8 @@ class win_setting(Toplevel):
         if str(self.cb["StringVar"][idx].get()) != "" and str(self.cb["StringVar"][idx].get()) != ".":
             value = round(float(self.cb["StringVar"][idx].get()), 2)
             # Сначала рассчитываем значение которые имеются, фиксированные и не фиксированные...
-            for i in range(self.num_day, self.num_day + self.num):
+            # for i in range(self.num_day, self.num_day + self.num):
+            for i in range(len(list_values[self.name])):
                 v_get = round(float(self.cb["StringVar"][i].get()), 2)
                 if self.cb["val"][i] == 1:
                     const_val += v_get
@@ -496,19 +496,21 @@ class win_setting(Toplevel):
                 self.cb["StringVar"][idx].trace_id = self.cb["StringVar"][idx].trace('w', self.magic_entry)
             else:
                 # Расчёт по формуле чтобы всегда было = 1
-                for i in range(self.num_day, self.num_day + self.num):
-                    if i == idx:
-                        x = round(self.num - value - const_val, 2)# / (self.cb["val"].count(0) - 1) # Определяем какие значения у оставшихся должны быть чтобы всё было == 1
-                        z = round((x - no_const_val) / (self.cb["val"].count(0) - 1), 2)
-                        # print("x = ", self.num, "-", value, "-", const_val , "=", x)
-                        # print("z = (", x, "-", no_const_val, ") / (", self.cb["val"].count(0), "- 1) = ",z)
-                        for index in no_const_list_index:
-                            self.cb["StringVar"][index].trace_vdelete('w', self.cb["StringVar"][index].trace_id)
-                            rez = round(float(self.cb["StringVar"][index].get()) + z, 2)
-                            self.cb["StringVar"][index].set(str(rez))
-                            self.cb["StringVar"][index].trace_id = self.cb["StringVar"][index].trace('w', self.magic_entry)
-                            list_values[self.name][index] = float(self.cb["StringVar"][index].get())
-                        list_values[self.name][i] = float(self.cb["StringVar"][i].get())
+                # for i in range(self.num_day, self.num_day + self.num):
+                #     if i == idx:
+                x = round(len(list_values[self.name]) - value - const_val, 2)#self.num / (self.cb["val"].count(0) - 1) # Определяем какие значения у оставшихся должны быть чтобы всё было == 1
+                z = round((x - no_const_val) / (self.cb["val"].count(0) - 1), 2)
+                # print("x = ", self.num, "-", value, "-", const_val , "=", x)
+                # print("z = (", x, "-", no_const_val, ") / (", self.cb["val"].count(0), "- 1) = ",z)
+                for index in no_const_list_index:
+                    if self.num_day <= index and index < self.num_day + self.num:
+                        self.cb["StringVar"][index].trace_vdelete('w', self.cb["StringVar"][index].trace_id)
+                    rez = round(float(self.cb["StringVar"][index].get()) + z, 2)
+                    self.cb["StringVar"][index].set(str(rez))
+                    if self.num_day <= index and index < self.num_day + self.num:
+                        self.cb["StringVar"][index].trace_id = self.cb["StringVar"][index].trace('w', self.magic_entry)
+                    list_values[self.name][index] = float(self.cb["StringVar"][index].get())
+                list_values[self.name][idx] = float(self.cb["StringVar"][idx].get())
 
     # def magic_round(self, value):
     #     # sleep(0.05)
@@ -789,8 +791,6 @@ class win_setting(Toplevel):
 
         for j in range(len(list_values[self.name])):
             if self.num_day <= j and j < self.num_day + self.num:
-                print(j)
-                print(self.num_day,"<=",j,"<",self.num_day + self.num)
                 self.cb["StringVar"][j].trace_vdelete('w', self.cb["StringVar"][j].trace_id)
             self.v[j].set(1.0)
             self.cb["box"][j].set(0)

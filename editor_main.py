@@ -104,26 +104,26 @@ class main_app(Tk):
     def main(self):
         w = int(640/1.5)
         h = int(480/1.5)
-        self.test_entry = StringVar(name="num_people")
-        self.test2_entry = StringVar(name="q_people")
-        self.test3_entry = StringVar(name="center_value_day")
-        self.test_entry.set(str(num_people))
-        self.test2_entry.set("100")
-        self.test3_entry.set("")
-        self.test_entry.trace_id = self.test_entry.trace('w', self.test)
-        self.test2_entry.trace_id = self.test2_entry.trace('w', self.test)
-        self.test3_entry.trace_id = self.test3_entry.trace('w', self.test)
+        self.num_people_StringVar = StringVar(name="num_people")
+        self.q_people_StringVar = StringVar(name="q_people")
+        self.center_value_day_StringVar = StringVar(name="center_value_day")
+        self.num_people_StringVar.set(str(num_people))
+        self.q_people_StringVar.set("100")
+        self.center_value_day_StringVar.set("")
+        self.num_people_StringVar.trace_id = self.num_people_StringVar.trace('w', self.calculation)
+        self.q_people_StringVar.trace_id = self.q_people_StringVar.trace('w', self.calculation)
+        self.center_value_day_StringVar.trace_id = self.center_value_day_StringVar.trace('w', self.calculation)
         self.progressbar = Progressbar(self, orient=HORIZONTAL, length=400, mode='determinate')
         self.label = Label(self, text="")
         self.year = Entry(self)  # Введите год цифрами
-        self.num_people = Entry(self, textvariable=self.test_entry,width=20)  # Введите количество человек цифрами, к примеру 2000
+        self.num_people = Entry(self, textvariable=self.num_people_StringVar,width=20)  # Введите количество человек цифрами, к примеру 2000
         self.num_people.config(validate="key", validatecommand=(self.num_people.register(self.check_keys), '%P'))
-        self.center_value_day = Entry(self, textvariable=self.test3_entry,width=20)
+        self.center_value_day = Entry(self, textvariable=self.center_value_day_StringVar,width=20)
         self.center_value_day.config(validate="key", validatecommand=(self.center_value_day.register(self.check_keys), '%P'))
         self.button = Button(self, text="Произвести расчет", command=self.calculations)
         self.year.insert(0, str(year))
         self.num_people_lab = Label(self, text="Введите количество человек:")# цифрами, к примеру 2000"
-        self.q_people = Combobox(self, values=["80", "100", "120", "150", "200", "300", "350"], textvariable=self.test2_entry,width=17)
+        self.q_people = Combobox(self, values=["80", "100", "120", "150", "200", "300", "350"], textvariable=self.q_people_StringVar,width=17)
         # self.q_people.current(1)
         # self.q_people.insert(0, str(q_people))
         self.q_people.config(validate="key", validatecommand=(self.q_people.register(self.check_keys), '%P'))
@@ -205,17 +205,17 @@ class main_app(Tk):
         # self.button2 = Button(self, text="Произвести расчет(из эксель)", command=self.calculations2)
         # self.button2.grid(columnspan=3, row=8)
 
-    def test(self,q,w,e):#qwe переменные необходимые для работы StringVar()
+    def calculation(self,q,w,e):#qwe переменные необходимые для работы StringVar()
         if q == "center_value_day":
-            if self.test_entry.get() != "" and self.test3_entry.get() != "":
-                self.test2_entry.trace_vdelete("w", self.test2_entry.trace_id)
-                self.test2_entry.set(str(int(int(self.test3_entry.get())*1000/int(self.test_entry.get()))))
-                self.test2_entry.trace_id = self.test2_entry.trace("w", self.test)
+            if self.num_people_StringVar.get() != "" and self.center_value_day_StringVar.get() != "":
+                self.q_people_StringVar.trace_vdelete("w", self.q_people_StringVar.trace_id)
+                self.q_people_StringVar.set(str(int(int(self.center_value_day_StringVar.get())*1000/int(self.num_people_StringVar.get()))))
+                self.q_people_StringVar.trace_id = self.q_people_StringVar.trace("w", self.calculation)
         else:
-            if self.test_entry.get() != "" and self.test2_entry.get() != "":
-                self.test3_entry.trace_vdelete("w", self.test3_entry.trace_id)
-                self.test3_entry.set(str(int(int(self.test_entry.get())*int(self.test2_entry.get())/1000)))
-                self.test3_entry.trace_id = self.test3_entry.trace("w", self.test)
+            if self.num_people_StringVar.get() != "" and self.q_people_StringVar.get() != "":
+                self.center_value_day_StringVar.trace_vdelete("w", self.center_value_day_StringVar.trace_id)
+                self.center_value_day_StringVar.set(str(int(int(self.num_people_StringVar.get())*int(self.q_people_StringVar.get())/1000)))
+                self.center_value_day_StringVar.trace_id = self.center_value_day_StringVar.trace("w", self.calculation)
 
 
     def calculations(self):

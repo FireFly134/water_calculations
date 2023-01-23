@@ -26,6 +26,10 @@ year = 2022
 num_people = 1000
 # q_people = 100
 
+list_save_day = []
+list_save_week = []
+list_save_year = []
+
 setting = {
     "list_values": {"day": [],
                     "cb_day": [],
@@ -84,6 +88,63 @@ if os.path.exists(os.path.join(os.getcwd(), "save_file\data_setting.json")):
         setting = json.load(read_file)
 else:
     check_fails()
+class general_functionality():
+    global list_save_day, list_save_week, list_save_year
+    def __init__(self):
+        super().__init__()
+
+    def save_file(self, name, name_file):
+        if name == "day":
+            if name_file not in list_save_day:
+                list_save_day.append(name_file)
+            img_num = "IMG"
+            name_column = "hour"
+            description = f"График за день"
+            label_x = 'Час'
+            label_y = 'коэфф.'
+        elif name == "week":
+            if name_file not in list_save_week:
+                list_save_week.append(name_file)
+            img_num = "IMG2"
+            name_column = "week"
+            description = f"График за неделю"
+            label_x = 'номер недели'
+            label_y = 'коэфф.'
+        else:
+            if name_file not in list_save_year:
+                list_save_year.append(name_file)
+            img_num = "IMG3"
+            name_column = "day"
+            description = f"График за год"
+            label_x = 'день'
+            label_y = 'коэфф.'
+        rez = {name_column: [],
+               "k": [],
+               "chekBox": []
+               }
+        for i in range(len(setting["list_values"][name])): #Нужно ли эта перезапись?
+            rez[name_column].append(i+1)
+            rez["k"].append(setting["list_values"][name][i])
+            rez["chekBox"].append(setting["list_values"][f"cb_{name}"][i])
+        df = pd.DataFrame(rez)
+        df.to_excel(f"{os.getcwd()}/save_file/{name}/{name_file}.xlsx", index=None)
+        self.chart(name, rez[name_column], rez["k"], label_x, label_y, f'excel_chart_{name_file}.jpeg', description)
+        setting["pathDf"][name] = f"{os.getcwd()}/save_file/{name}/{name_file}.xlsx"
+        setting["pathImage"][img_num] = f"{os.getcwd()}/save_file/{name}/excel_chart_{name_file}.jpeg"
+        clear_window()
+    def chart(self, name, list_x, list_y, label_x, label_y, file_name, description):
+        fig, ax = plt.subplots()
+        plt.plot(list_x, list_y, color='red')
+        fig.autofmt_xdate()
+        ax.grid()
+        if name == "day":
+            plt.xlim([1, 24])
+        ax.set_title(description)
+        plt.ylabel(label_y)
+        plt.xlabel(label_x)
+        plt.savefig(f"{os.getcwd()}/save_file/{name}/{file_name}")
+        plt.close()
+
 
 ### Основное приложение TKinter ###
 class main_app(Tk):
@@ -110,9 +171,9 @@ class main_app(Tk):
         self.num_people_StringVar.set(str(num_people))
         self.q_people_StringVar.set("100")
         self.center_value_day_StringVar.set("")
-        self.num_people_StringVar.trace_id = self.num_people_StringVar.trace('w', self.calculation)
-        self.q_people_StringVar.trace_id = self.q_people_StringVar.trace('w', self.calculation)
-        self.center_value_day_StringVar.trace_id = self.center_value_day_StringVar.trace('w', self.calculation)
+        self.num_people_StringVar.trace_id = self.num_people_StringVar.trace('w', self.calculation_of_water_consumption)
+        self.q_people_StringVar.trace_id = self.q_people_StringVar.trace('w', self.calculation_of_water_consumption)
+        self.center_value_day_StringVar.trace_id = self.center_value_day_StringVar.trace('w', self.calculation_of_water_consumption)
         self.progressbar = Progressbar(self, orient=HORIZONTAL, length=400, mode='determinate')
         self.label = Label(self, text="")
         self.year = Entry(self)  # Введите год цифрами
@@ -154,9 +215,9 @@ class main_app(Tk):
         l["image"] = l.image
         l2["image"] = l2.image
         l3["image"] = l3.image
-        self.save_day = Combobox(self, values=self.list_save_day, width=60)
-        self.save_week = Combobox(self, values=self.list_save_week, width=60)
-        self.save_year = Combobox(self, values=self.list_save_year, width=60)
+        self.save_day = Combobox(self, values=list_save_day, width=60)
+        self.save_week = Combobox(self, values=list_save_week, width=60)
+        self.save_year = Combobox(self, values=list_save_year, width=60)
         self.save_day.set(setting["set_save_day"])
         self.save_week.set(setting["set_save_week"])
         self.save_year.set(setting["set_save_year"])
@@ -205,17 +266,17 @@ class main_app(Tk):
         # self.button2 = Button(self, text="Произвести расчет(из эксель)", command=self.calculations2)
         # self.button2.grid(columnspan=3, row=8)
 
-    def calculation(self,q,w,e):#qwe переменные необходимые для работы StringVar()
+    def calculation_of_water_consumption(self,q,w,e):#qwe переменные необходимые для работы StringVar()
         if q == "center_value_day":
             if self.num_people_StringVar.get() != "" and self.center_value_day_StringVar.get() != "":
                 self.q_people_StringVar.trace_vdelete("w", self.q_people_StringVar.trace_id)
                 self.q_people_StringVar.set(str(int(int(self.center_value_day_StringVar.get())*1000/int(self.num_people_StringVar.get()))))
-                self.q_people_StringVar.trace_id = self.q_people_StringVar.trace("w", self.calculation)
+                self.q_people_StringVar.trace_id = self.q_people_StringVar.trace("w", self.calculation_of_water_consumption)
         else:
             if self.num_people_StringVar.get() != "" and self.q_people_StringVar.get() != "":
                 self.center_value_day_StringVar.trace_vdelete("w", self.center_value_day_StringVar.trace_id)
                 self.center_value_day_StringVar.set(str(int(int(self.num_people_StringVar.get())*int(self.q_people_StringVar.get())/1000)))
-                self.center_value_day_StringVar.trace_id = self.center_value_day_StringVar.trace("w", self.calculation)
+                self.center_value_day_StringVar.trace_id = self.center_value_day_StringVar.trace("w", self.calculation_of_water_consumption)
 
 
     def calculations(self):
@@ -284,7 +345,7 @@ class main_app(Tk):
         setting["list_values"]["cb_week"] = df_week['chekBox'].to_list()
         setting["list_values"]["cb_year"] = df_year['chekBox'].to_list()
 
-# Валидация ввода символов в ячейки ввода.
+    # Валидация ввода символов в ячейки ввода.
     def check_keys(self, text):
         list_punctuation_marks="!@#$%^&*()_-+=[{}]\|/,?><:;'\"`~ "
         # Не событие вставки или ни один символ в тексте не является буквой
@@ -298,7 +359,7 @@ class main_app(Tk):
                 if os.path.exists(f"{os.getcwd()}/save_file/day/{setting['set_save_day']}.xlsx"):
                     self.open_window_ask_save("day", setting["set_save_day"])
                 else:
-                    self.save_file("day", setting["set_save_day"])
+                    general_functionality().save_file("day", setting["set_save_day"])
             else:
                 os.mkdir(f"{os.getcwd()}/save_file/day")
 
@@ -310,7 +371,7 @@ class main_app(Tk):
                 if os.path.exists(f"{os.getcwd()}/save_file/week/{setting['set_save_week']}.xlsx"):
                     self.open_window_ask_save("week", setting["set_save_week"])
                 else:
-                    self.save_file("week", setting["set_save_week"])
+                    general_functionality().save_file("week", setting["set_save_week"])
             else:
                 os.mkdir(f"{os.getcwd()}/save_file/week")
 
@@ -322,7 +383,7 @@ class main_app(Tk):
                 if os.path.exists(f"{os.getcwd()}/save_file/year/{setting['set_save_year']}.xlsx"):
                     self.open_window_ask_save("year", setting["set_save_year"])
                 else:
-                    self.save_file("year", setting["set_save_year"])
+                    general_functionality().save_file("year", setting["set_save_year"])
             else:
                 os.mkdir(f"{os.getcwd()}/save_file/year")
 
@@ -349,59 +410,60 @@ class main_app(Tk):
             clear_window()
 
 
-    def save_file(self, name, name_file):
-        if name == "day":
-            if name_file not in self.list_save_day:
-                self.list_save_day.append(name_file)
-            img_num = "IMG"
-            name_column = "hour"
-            description = f"График за день"
-            label_x = 'Час'
-            label_y = 'коэфф.'
-        elif name == "week":
-            if name_file not in self.list_save_week:
-                self.list_save_week.append(name_file)
-            img_num = "IMG2"
-            name_column = "week"
-            description = f"График за неделю"
-            label_x = 'номер недели'
-            label_y = 'коэфф.'
-        else:
-            if name_file not in self.list_save_year:
-                self.list_save_year.append(name_file)
-            img_num = "IMG3"
-            name_column = "day"
-            description = f"График за год"
-            label_x = 'день'
-            label_y = 'коэфф.'
-        rez = {name_column: [],
-               "k": [],
-               "chekBox": []
-               }
-        for i in range(len(setting["list_values"][name])): #Нужно ли эта перезапись?
-            rez[name_column].append(i+1)
-            rez["k"].append(setting["list_values"][name][i])
-            rez["chekBox"].append(setting["list_values"][f"cb_{name}"][i])
-        df = pd.DataFrame(rez)
-        df.to_excel(f"{os.getcwd()}/save_file/{name}/{name_file}.xlsx", index=None)
-        self.chart(name, rez[name_column], rez["k"], label_x, label_y, f'excel_chart_{name_file}.jpeg', description)
-        setting["pathDf"][name] = f"{os.getcwd()}/save_file/{name}/{name_file}.xlsx"
-        setting["pathImage"][img_num] = f"{os.getcwd()}/save_file/{name}/excel_chart_{name_file}.jpeg"
-        clear_window()
-    def chart(self, name, list_x, list_y, label_x, label_y, file_name, description):
-        fig, ax = plt.subplots()
-        plt.plot(list_x, list_y, color='red')
-        fig.autofmt_xdate()
-        ax.grid()
-        if name == "day":
-            plt.xlim([1, 24])
-        ax.set_title(description)
-        plt.ylabel(label_y)
-        plt.xlabel(label_x)
-        plt.savefig(f"{os.getcwd()}/save_file/{name}/{file_name}")
-        plt.close()
+    # def save_file(self, name, name_file):
+    #     if name == "day":
+    #         if name_file not in self.list_save_day:
+    #             self.list_save_day.append(name_file)
+    #         img_num = "IMG"
+    #         name_column = "hour"
+    #         description = f"График за день"
+    #         label_x = 'Час'
+    #         label_y = 'коэфф.'
+    #     elif name == "week":
+    #         if name_file not in self.list_save_week:
+    #             self.list_save_week.append(name_file)
+    #         img_num = "IMG2"
+    #         name_column = "week"
+    #         description = f"График за неделю"
+    #         label_x = 'номер недели'
+    #         label_y = 'коэфф.'
+    #     else:
+    #         if name_file not in self.list_save_year:
+    #             self.list_save_year.append(name_file)
+    #         img_num = "IMG3"
+    #         name_column = "day"
+    #         description = f"График за год"
+    #         label_x = 'день'
+    #         label_y = 'коэфф.'
+    #     rez = {name_column: [],
+    #            "k": [],
+    #            "chekBox": []
+    #            }
+    #     for i in range(len(setting["list_values"][name])): #Нужно ли эта перезапись?
+    #         rez[name_column].append(i+1)
+    #         rez["k"].append(setting["list_values"][name][i])
+    #         rez["chekBox"].append(setting["list_values"][f"cb_{name}"][i])
+    #     df = pd.DataFrame(rez)
+    #     df.to_excel(f"{os.getcwd()}/save_file/{name}/{name_file}.xlsx", index=None)
+    #     self.chart(name, rez[name_column], rez["k"], label_x, label_y, f'excel_chart_{name_file}.jpeg', description)
+    #     setting["pathDf"][name] = f"{os.getcwd()}/save_file/{name}/{name_file}.xlsx"
+    #     setting["pathImage"][img_num] = f"{os.getcwd()}/save_file/{name}/excel_chart_{name_file}.jpeg"
+    #     clear_window()
+    # def chart(self, name, list_x, list_y, label_x, label_y, file_name, description):
+    #     fig, ax = plt.subplots()
+    #     plt.plot(list_x, list_y, color='red')
+    #     fig.autofmt_xdate()
+    #     ax.grid()
+    #     if name == "day":
+    #         plt.xlim([1, 24])
+    #     ax.set_title(description)
+    #     plt.ylabel(label_y)
+    #     plt.xlabel(label_x)
+    #     plt.savefig(f"{os.getcwd()}/save_file/{name}/{file_name}")
+    #     plt.close()
 
     def check_list_save(self):
+        global list_save_day, list_save_week, list_save_year
         if not os.path.exists(f"{os.getcwd()}/save_file/"):
             os.mkdir(f"{os.getcwd()}/save_file")
         if not os.path.exists(f"{os.getcwd()}/save_file/day"):
@@ -410,9 +472,9 @@ class main_app(Tk):
             os.mkdir(f"{os.getcwd()}/save_file/week")
         if not os.path.exists(f"{os.getcwd()}/save_file/year"):
             os.mkdir(f"{os.getcwd()}/save_file/year")
-        self.list_save_day = [name.replace(".xlsx", "") for name in os.listdir(f"{os.getcwd()}/save_file/day") if "excel_chart_" not in name]
-        self.list_save_week = [name.replace(".xlsx", "") for name in os.listdir(f"{os.getcwd()}/save_file/week") if "excel_chart_" not in name]
-        self.list_save_year = [name.replace(".xlsx", "") for name in os.listdir(f"{os.getcwd()}/save_file/year") if "excel_chart_" not in name]
+        list_save_day = [name.replace(".xlsx", "") for name in os.listdir(f"{os.getcwd()}/save_file/day") if "excel_chart_" not in name]
+        list_save_week = [name.replace(".xlsx", "") for name in os.listdir(f"{os.getcwd()}/save_file/week") if "excel_chart_" not in name]
+        list_save_year = [name.replace(".xlsx", "") for name in os.listdir(f"{os.getcwd()}/save_file/year") if "excel_chart_" not in name]
 class win_setting(Toplevel):
     global setting
     def __init__(self, parent, num, label_x, label_y, description, name, num_month=0):
@@ -759,51 +821,7 @@ class win_ask_saving(Toplevel):
         Label(self).grid(columnspan=4, row=2)
 
     def response_processing(self):
-        if self.name == "day":
-            img_num = "IMG"
-            name_column = "hour"
-            description = f"График за день"
-            label_x = 'Час'
-            label_y = 'коэфф.'
-        elif self.name == "week":
-            img_num = "IMG2"
-            name_column = "week"
-            description = f"График за неделю"
-            label_x = 'номер недели'
-            label_y = 'коэфф.'
-        else:
-            img_num = "IMG3"
-            name_column = "day"
-            description = f"График за год"
-            label_x = 'день'
-            label_y = 'коэфф.'
-        rez = {name_column: [],
-               "k": [],
-               "chekBox": []
-               }
-        for i in range(len(setting["list_values"][self.name])):  # Нужно ли эта перезапись?
-            rez[name_column].append(i + 1)
-            rez["k"].append(setting["list_values"][self.name][i])
-            rez["chekBox"].append(setting["list_values"][f"cb_{self.name}"][i])
-        df = pd.DataFrame(rez)
-        df.to_excel(f"{os.getcwd()}/save_file/{self.name}/{self.name_file}.xlsx", index=None)
-        self.chart(self.name, rez[name_column], rez["k"], label_x, label_y, f'excel_chart_{self.name_file}.jpeg', description)
-        setting["pathDf"][self.name] = f"{os.getcwd()}/save_file/{self.name}/{self.name_file}.xlsx"
-        setting["pathImage"][img_num] = f"{os.getcwd()}/save_file/{self.name}/excel_chart_{self.name_file}.jpeg"
-        clear_window()
-
-    def chart(self, name, list_x, list_y, label_x, label_y, file_name, description):
-        fig, ax = plt.subplots()
-        plt.plot(list_x, list_y, color='red')
-        fig.autofmt_xdate()
-        ax.grid()
-        if name == "day":
-            plt.xlim([1, 24])
-        ax.set_title(description)
-        plt.ylabel(label_y)
-        plt.xlabel(label_x)
-        plt.savefig(f"{os.getcwd()}/save_file/{name}/{file_name}")
-        plt.close()
+        general_functionality().save_file(self.name, self.name_file)
 
 ### Очищаем основное окно, чтобы потом нарисовать новые картинки ###
 def clear_window():
@@ -895,8 +913,6 @@ def raschet(j, q_people, procent, year, list_day, list_week, list_year, rezult, 
             weekday += 1
             if weekday == 7:
                 weekday = 0
-
-
 
 ################################
 # Расчет и сохранение графиков #
@@ -1037,6 +1053,5 @@ def chart(list_x,list_y,label_x, label_y, description, file_name, limit=False, m
     #     return not any(char.isalpha() for char in text) and not any(char in list_punctuation_marks for char in text)
 
 if __name__ == "__main__":
-    # check_fails()
     app = main_app()
     app.mainloop()

@@ -228,7 +228,7 @@ class main_app(Tk):
         self.btn_save_year = Button(self, text="Сохранить", command=self.save_chart_year, width=10)
         self.btn_load_year = Button(self, text="Загрузить", command=self.load_chart_year, width=10)
 
-        self.btn = Button(self, text="Открыть папку с файлами",
+        self.btn = Button(self, text="Открыть результаты расчёта",
                           command=self.open_window)
         self.btn2 = Button(self, text="Открыть суточный редактор", image=self.img,
                           command=self.open_window_day)
@@ -288,8 +288,10 @@ class main_app(Tk):
         faind_max_min_in_hour(df2)
 
     def open_window(self):
-        # os.system(f"explorer {os.getcwd()}")
-        os.system(f"explorer {os.path.join(os.getcwd(), 'calculation results')}")
+        path = os.path.join(os.getcwd(), 'calculation results')
+        if not os.path.exists(path):
+            os.mkdir(path)
+        os.system(f"explorer {path}")
 
     def open_window_day(self):
         self.check()
@@ -813,11 +815,11 @@ class win_setting(Toplevel):
             self.cb["entry"][i].configure(state='normal')
 
         for j in range(len(setting["list_values"][self.name])):
+            self.cb["box"][j].set(0)
+            self.cb["val"][j] = 0
             if self.num_day <= j and j < self.num_day + self.num:
                 self.cb["StringVar"][j].trace_vdelete('w', self.cb["StringVar"][j].trace_id)
             self.v[j].set(1.0)
-            self.cb["box"][j].set(0)
-            self.cb["val"][j] = 0
             setting["list_values"][self.name][j] = 1.0
             # self.cb["StringVar"][j].set("1.0")
             if j >= self.num_day and j <= self.num_day + self.num:
@@ -828,7 +830,7 @@ class win_setting(Toplevel):
         # for i in range(len(self.cb["StringVar"])):
         for i in range(self.num_day, self.num_day + self.num):
             self.cb["StringVar"][i].trace_vdelete('w', self.cb["StringVar"][i].trace_id)
-            clear_window()
+        clear_window()
 
 
 # Валидация ввода символов в ячейки ввода.

@@ -288,7 +288,8 @@ class main_app(Tk):
         faind_max_min_in_hour(df2)
 
     def open_window(self):
-        os.system(f"explorer {os.getcwd()}/calculation results/")
+        # os.system(f"explorer {os.getcwd()}")
+        os.system(f"explorer {os.path.join(os.getcwd(), 'calculation results')}")
 
     def open_window_day(self):
         self.check()
@@ -533,7 +534,7 @@ class win_setting(Toplevel):
                 self.cb["entry"][i - self.num_day].grid(column=i - self.num_day, row=4)
 
             for i in range(self.num_day, self.num_day + self.num):
-                # self.cb["StringVar"][i].set(round(setting["list_values"][self.name][i], 2))
+                # self.cb["StringVar"][i].set(round(float(setting["list_values"][self.name][i]), 2))
                 self.cb["StringVar"][i].trace_id = self.cb["StringVar"][i].trace('w', self.magic_entry)
         else:
             for i in range(self.num):
@@ -547,7 +548,7 @@ class win_setting(Toplevel):
 
                 # Создаём переменную для хранения значений с ячейки для ввода и реагирующую на изменения
                 self.cb["StringVar"].append(StringVar(name=str(i)))#(name=f"index={i}"))
-                # self.cb["StringVar"][i].set(round(setting["list_values"][self.name][i], 2))
+                # self.cb["StringVar"][i].set(round(float(setting["list_values"][self.name][i]), 2))
                 # self.cb["StringVar"][i].trace_id = self.cb["StringVar"][i].trace('w', self.magic_entry)
 
 
@@ -629,6 +630,7 @@ class win_setting(Toplevel):
         for i in range(self.num_day, self.num_day + self.num):
             # Если значение отличается от того какое у нас было записано, то выполняем действие.
             if self.cb["box"][i].get() != self.cb["val"][i]:
+                self.cb["StringVar"][i].trace_vdelete('w', self.cb["StringVar"][i].trace_id)
                 # Обязательно следим чтобы осталось не меньше 2х не активированых чекбоксов. Иначе просто не даем нажимать на них.
                 if self.cb["val"].count(0) == 2:
                     if self.cb["box"][i].get() == 1:
@@ -642,6 +644,7 @@ class win_setting(Toplevel):
                     self.cb["val"][i] = 1
                     self.scale_list[i - self.num_day].configure(state='disabled')
                     self.cb["entry"][i - self.num_day].configure(state='disabled')
+                self.cb["StringVar"][i].trace_id = self.cb["StringVar"][i].trace('w', self.magic_entry)
 
     def magic_entry(self, idx, q='', w=''):
         const_val = 0
@@ -650,7 +653,8 @@ class win_setting(Toplevel):
         idx = int(idx)
         if str(self.cb["StringVar"][idx].get()) != "" and str(self.cb["StringVar"][idx].get()) != ".":
             # value = round(float(self.cb["StringVar"][idx].get()), 2)
-            value = float(self.cb["StringVar"][idx].get())
+            # value = float(self.cb["StringVar"][idx].get())
+            value = self.v[idx].get()
             # Сначала рассчитываем значение которые имеются, фиксированные и не фиксированные...
             # for i in range(self.num_day, self.num_day + self.num):
             for i in range(len(setting["list_values"][self.name])):
@@ -664,7 +668,8 @@ class win_setting(Toplevel):
                         no_const_list_index.append(i)
 
             ### Расчет минимального и максимального значения ###
-            max = self.num - const_val
+            # max = self.num - const_val
+            max = len(setting["list_values"][self.name]) - const_val
             if self.name == "day":
                 max_value_DoubleVar = 4
                 min = self.num - const_val - ((self.cb["val"].count(0)-1) * max_value_DoubleVar) # 2 - это пока что максимальное значение в днях =4
@@ -701,7 +706,9 @@ class win_setting(Toplevel):
                 x = len(setting["list_values"][self.name]) - value - const_val#self.num / (self.cb["val"].count(0) - 1) # Определяем какие значения у оставшихся должны быть чтобы всё было == 1
                 # z = round((x - no_const_val) / (self.cb["val"].count(0) - 1), 2)
                 z = (x - no_const_val) / (self.cb["val"].count(0) - 1)
-                # print("x = ", self.num, "-", value, "-", const_val , "=", x)
+                # print("max=",max)
+                # print("min=",min)
+                # print("x = ", len(setting["list_values"][self.name]), "-", value, "-", const_val , "=", x)
                 # print("z = (", x, "-", no_const_val, ") / (", self.cb["val"].count(0), "- 1) = ",z)
                 for index in no_const_list_index:
                     if self.num_day <= index and index < self.num_day + self.num:
@@ -713,6 +720,72 @@ class win_setting(Toplevel):
                         self.cb["StringVar"][index].trace_id = self.cb["StringVar"][index].trace('w', self.magic_entry)
                     setting["list_values"][self.name][index] = float(self.cb["StringVar"][index].get())
                 setting["list_values"][self.name][idx] = float(self.cb["StringVar"][idx].get())
+    # def magic_entry(self, idx, q='', w=''):
+    #     const_val = 0
+    #     no_const_val = 0
+    #     no_const_list_index = []
+    #     idx = int(idx)
+    #     if str(self.cb["StringVar"][idx].get()) != "" and str(self.cb["StringVar"][idx].get()) != ".":
+    #         # value = round(float(self.cb["StringVar"][idx].get()), 2)
+    #         # value = float(self.cb["StringVar"][idx].get())
+    #         value = self.v[idx].get()
+    #         # Сначала рассчитываем значение которые имеются, фиксированные и не фиксированные...
+    #         # for i in range(self.num_day, self.num_day + self.num):
+    #         for i in range(len(setting["list_values"][self.name])):
+    #             # v_get = round(float(self.cb["StringVar"][i].get()), 2)
+    #             v_get = float(setting["list_values"][self.name][i])
+    #             if self.cb["val"][i] == 1:
+    #                 const_val += v_get
+    #             else:
+    #                 if idx != i:
+    #                     no_const_val += v_get
+    #                     no_const_list_index.append(i)
+    #
+    #         ### Расчет минимального и максимального значения ###
+    #         # max = self.num - const_val
+    #         max = len(setting["list_values"][self.name]) - const_val
+    #         if self.name == "day":
+    #             max_value_DoubleVar = 4
+    #             min = self.num - const_val - ((self.cb["val"].count(0)-1) * max_value_DoubleVar) # 2 - это пока что максимальное значение в днях =4
+    #         else:
+    #             max_value_DoubleVar = 2
+    #             min = self.num - const_val - ((self.cb["val"].count(0)-1) * max_value_DoubleVar) # 2 - это пока что максимальное значение в днях =4
+    #
+    #         if value < min and self.cb["val"].count(0) == 2:
+    #             self.cb["StringVar"][idx].trace_vdelete('w', self.cb["StringVar"][idx].trace_id)
+    #             # self.cb["StringVar"][idx].set(str(round(min, 2)))
+    #             self.cb["StringVar"][idx].set(str(round(min,2)))
+    #             setting["list_values"][self.name][idx]=min
+    #             self.cb["StringVar"][idx].trace_id = self.cb["StringVar"][idx].trace('w', self.magic_entry)
+    #             # value = round(min, 2)
+    #             value = min
+    #         if value > max and self.cb["val"].count(0) == 2:
+    #             self.cb["StringVar"][idx].trace_vdelete('w', self.cb["StringVar"][idx].trace_id)
+    #             # self.cb["StringVar"][idx].set(str(round(max, 2)))
+    #             self.cb["StringVar"][idx].set(str(round(max, 2)))
+    #             setting["list_values"][self.name][idx] = max
+    #             self.cb["StringVar"][idx].trace_id = self.cb["StringVar"][idx].trace('w', self.magic_entry)
+    #             # value = round(max, 2)
+    #             value = max
+    #         if (value >= max or value < min):
+    #             self.cb["StringVar"][idx].trace_vdelete('w', self.cb["StringVar"][idx].trace_id)
+    #             self.cb["StringVar"][idx].set(str(round(float(setting["list_values"][self.name][idx]), 2)))
+    #             setting["list_values"][self.name][idx] = float(setting["list_values"][self.name][idx])
+    #             self.cb["StringVar"][idx].trace_id = self.cb["StringVar"][idx].trace('w', self.magic_entry)
+    #         else:
+    #             x = len(setting["list_values"][self.name]) - value - const_val#self.num / (self.cb["val"].count(0) - 1) # Определяем какие значения у оставшихся должны быть чтобы всё было == 1
+    #             z = (x - no_const_val) / (self.cb["val"].count(0) - 1)
+    #             for index in no_const_list_index:
+    #                 if self.num_day <= index and index < self.num_day + self.num:
+    #                     self.cb["StringVar"][index].trace_vdelete('w', self.cb["StringVar"][index].trace_id)
+    #                 # rez = round(float(self.cb["StringVar"][index].get()) + z, 2)
+    #                 rez = float(self.cb["StringVar"][index].get()) + z
+    #                 self.cb["StringVar"][index].set(str(round(rez, 2)))
+    #                 setting["list_values"][self.name][index] = rez
+    #                 if self.num_day <= index and index < self.num_day + self.num:
+    #                     self.cb["StringVar"][index].trace_id = self.cb["StringVar"][index].trace('w', self.magic_entry)
+    #                 # setting["list_values"][self.name][index] = float(self.cb["StringVar"][index].get())
+    #             # setting["list_values"][self.name][idx] = float(self.cb["StringVar"][idx].get())
 
     def chart(self):
         fig, ax = plt.subplots()

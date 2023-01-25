@@ -5,6 +5,7 @@ https://pythonru.com/uroki/vsplyvajushhie-okna-tkinter-11
 скролл гдя года
 https://translated.turbopages.org/proxy_u/en-ru.ru.48baf219-63a34409-f8d77d32-74722d776562/https/stackoverflow.com/questions/71677889/create-a-scrollbar-to-a-full-window-tkinter-in-python
 """
+import datetime
 # -*- coding: utf-8 -*-
 import os
 import sys
@@ -22,7 +23,7 @@ from matplotlib import pyplot as plt
 from PIL import ImageTk, Image
 
 rand_opt = False #вкл или выкл рандома
-year = 2022
+year = datetime.datetime.now().strftime("%Y")
 num_people = 1000
 # q_people = 100
 
@@ -525,7 +526,7 @@ class win_setting(Toplevel):
                 l.append(Label(self))
                 l[i - self.num_day].config(text=str(i - self.num_day + 1))
                 Checkbutton(self, variable=self.cb["box"][i], command=self.magic_checkbox).grid(column=i - self.num_day, row=1,sticky="e")
-                self.scale_list.append(Scale(self, variable=self.v[i], from_=2.0, to=0.0, orient=VERTICAL, resolution=0.01, bd=0, length=300))#, command=self.magic
+                self.scale_list.append(Scale(self, variable=self.v[i], from_=2.0, to=0.0, orient=VERTICAL, resolution=0.01, showvalue=False, bd=0, length=300))#, command=self.magic
                 self.scale_list[i - self.num_day].grid(column=i - self.num_day, row=3)
                 l[i - self.num_day].grid(column=i - self.num_day, row=2)
 
@@ -615,10 +616,14 @@ class win_setting(Toplevel):
             rez["chekBox"].append(self.cb["val"][i])
         df = pd.DataFrame(rez)
         df.to_excel(f"{os.getcwd()}/{self.name}.xlsx", index=None)
-
         self.list_x = rez[name_column]
         self.list_y = rez["k"]
         self.file_name = f'excel_chart_{self.name}.jpeg'
+        # Если год 365 дней, то будем рисовать коректно
+        if self.name == "year":
+            if int(monthrange(year, 2)[1]) == 28:
+                self.list_x = self.list_x[:-1]
+                self.list_y = self.list_y[:-1]
 
         setting["pathDf"][self.name] = f"{os.getcwd()}/{self.name}.xlsx"
         setting["pathImage"][img_num] = f"{os.getcwd()}/excel_chart_{self.name}.jpeg"

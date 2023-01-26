@@ -117,7 +117,7 @@ class general_functionality():
             img_num = "IMG2"
             name_column = "week"
             description = f"График за неделю"
-            label_x = 'номер недели'
+            label_x = 'номер дня недели'
             label_y = 'коэфф.'
         else:
             if name_file not in list_save_year:
@@ -279,12 +279,12 @@ class main_app(Tk):
         if q == "center_value_day":
             if self.num_people_StringVar.get() != "" and self.center_value_day_StringVar.get() != "":
                 self.q_people_StringVar.trace_vdelete("w", self.q_people_StringVar.trace_id)
-                self.q_people_StringVar.set(str(int(int(self.center_value_day_StringVar.get())*1000/int(self.num_people_StringVar.get()))))
+                self.q_people_StringVar.set(str(int(float(self.center_value_day_StringVar.get())*1000/int(self.num_people_StringVar.get()))))
                 self.q_people_StringVar.trace_id = self.q_people_StringVar.trace("w", self.calculation_of_water_consumption)
         else:
             if self.num_people_StringVar.get() != "" and self.q_people_StringVar.get() != "":
                 self.center_value_day_StringVar.trace_vdelete("w", self.center_value_day_StringVar.trace_id)
-                self.center_value_day_StringVar.set(str(int(int(self.num_people_StringVar.get())*int(self.q_people_StringVar.get())/1000)))
+                self.center_value_day_StringVar.set(str(round(int(self.num_people_StringVar.get())*int(self.q_people_StringVar.get())/1000, 2)))
                 self.center_value_day_StringVar.trace_id = self.center_value_day_StringVar.trace("w", self.calculation_of_water_consumption)
 
 
@@ -317,7 +317,7 @@ class main_app(Tk):
         self.check()
         self.save_glob()
         num = 7
-        label_x = 'номер недели'
+        label_x = 'номер дня недели'
         label_y = 'коэфф.'
         description = f"График за неделю"
         name = 'week'

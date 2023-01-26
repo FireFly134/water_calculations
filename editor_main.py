@@ -24,7 +24,7 @@ from PIL import ImageTk, Image
 
 rand_opt = False #вкл или выкл рандома
 year = datetime.datetime.now().strftime("%Y")
-num_people = 1000
+# num_people = 1000
 # q_people = 100
 
 list_save_day = []
@@ -46,7 +46,9 @@ setting = {
     "pathDf": {"day": "",
               "week": "",
               "year": ""},
-
+    "num_people": 1000,
+    "q_people": 100,
+    "center_value_day": "",
     "set_save_day": "",
     "set_save_week": "",
     "set_save_year": ""}
@@ -169,9 +171,9 @@ class main_app(Tk):
         self.num_people_StringVar = StringVar(name="num_people")
         self.q_people_StringVar = StringVar(name="q_people")
         self.center_value_day_StringVar = StringVar(name="center_value_day")
-        self.num_people_StringVar.set(str(num_people))
-        self.q_people_StringVar.set("100")
-        self.center_value_day_StringVar.set("")
+        self.num_people_StringVar.set(str(setting["num_people"]))
+        self.q_people_StringVar.set(str(setting["q_people"]))
+        self.center_value_day_StringVar.set(str(setting["center_value_day"]))
         self.num_people_StringVar.trace_id = self.num_people_StringVar.trace('w', self.calculation_of_water_consumption)
         self.q_people_StringVar.trace_id = self.q_people_StringVar.trace('w', self.calculation_of_water_consumption)
         self.center_value_day_StringVar.trace_id = self.center_value_day_StringVar.trace('w', self.calculation_of_water_consumption)
@@ -329,10 +331,10 @@ class main_app(Tk):
 
 # тут мы просто сохраняем глобальные переменные...
     def save_glob(self):
-        global year, num_people, q_people
-        year = int(self.year.get())
-        num_people = int(self.num_people.get())
-        q_people = int(self.q_people.get())
+        global setting
+        setting["num_people"] = int(self.num_people.get())
+        setting["q_people"] = int(self.q_people.get())
+        setting["center_value_day"] = int(self.center_value_day.get())
 
 # Проверка на наличие необходимых файлов и их открытие.
     def check(self):
@@ -506,7 +508,7 @@ class win_setting(Toplevel):
         l = []
         if self.name == "year":
             for m in range(1, self.num_month):
-                num = int(monthrange(year, m)[1])
+                num = int(monthrange(int(year), m)[1])
                 self.num_day += num
             for j in range(len(setting["list_values"]["year"])):
                 # Создаём чекбокс
@@ -621,7 +623,7 @@ class win_setting(Toplevel):
         self.file_name = f'excel_chart_{self.name}.jpeg'
         # Если год 365 дней, то будем рисовать коректно
         if self.name == "year":
-            if int(monthrange(year, 2)[1]) == 28:
+            if int(monthrange(int(year), 2)[1]) == 28:
                 self.list_x = self.list_x[:-1]
                 self.list_y = self.list_y[:-1]
 
@@ -653,7 +655,7 @@ class win_setting(Toplevel):
                     self.cb["entry"][i - self.num_day].configure(state='disabled')
                 self.cb["StringVar"][i].trace_id = self.cb["StringVar"][i].trace('w', self.magic_entry)
 
-    def magic_entry_OLD(self, idx, q='', w=''):
+    def magic_entry_OLD_old(self, idx, q='', w=''):
         const_val = 0
         no_const_val = 0
         no_const_list_index = []
@@ -729,7 +731,7 @@ class win_setting(Toplevel):
                         self.cb["StringVar"][index].trace_id = self.cb["StringVar"][index].trace('w', self.magic_entry)
                     setting["list_values"][self.name][index] = float(self.cb["StringVar"][index].get())
                 setting["list_values"][self.name][idx] = float(self.cb["StringVar"][idx].get())
-    def magic_entry(self, idx, q='', w=''):
+    def magic_entry_old(self, idx, q='', w=''):
         idx = int(idx)
         # проверяем чтобы не сработало ложное срабатывание
         if str(self.cb["StringVar"][idx].get()) != "" and str(self.cb["StringVar"][idx].get()) != "." and round(float(setting["list_values"][self.name][idx]), 2) != float(self.cb["StringVar"][idx].get()):
@@ -826,6 +828,110 @@ class win_setting(Toplevel):
                     self.cb["StringVar"][idx].set(str(setting["list_values"][self.name][idx]))
                     self.cb["StringVar"][idx].trace_id = self.cb["StringVar"][idx].trace('w', self.magic_entry)
                 # print(sum(setting["list_values"][self.name]) / len(setting["list_values"][self.name]))
+    def magic_entry(self, idx, q='', w=''):
+        idx = int(idx)
+        # проверяем чтобы не сработало ложное срабатывание
+        if str(self.cb["StringVar"][idx].get()) != "" and str(self.cb["StringVar"][idx].get()) != "." and round(float(setting["list_values"][self.name][idx]), 2) != float(self.cb["StringVar"][idx].get()):
+            reset = True
+            while reset:
+                reset = False
+                const_val = 0
+                no_const_val = 0
+                dont_touch_val = 0
+                no_const_list_index = []
+                dont_touch_list_index = []
+                # Получаем значение которое мы изменяем
+                value = self.v[idx].get()
+                # Сверяем что открыто и какое максимальное значение можно выставить.
+                if self.name == "day":
+                    max_value_DoubleVar = 4.0
+                else:
+                    max_value_DoubleVar = 2.0
+                # Сначало смотрим в какую сторону изменилось значение, что делать плюсовать или минусовать и какие значения мы не должны трогать.
+                if setting["list_values"][self.name][idx] < value:
+                    dont_touch = 0.0
+                else:
+                    dont_touch = max_value_DoubleVar
+                # Сначала рассчитываем значение которые имеются, фиксированные и не фиксированные...
+                for i, v_get in enumerate(setting["list_values"][self.name]):
+                    if idx != i:
+                        if self.cb["val"][i] == 1:
+                            const_val += v_get
+                        else:
+                            if v_get == dont_touch:
+                                dont_touch_val += v_get
+                                dont_touch_list_index.append(i)
+                            else:
+                                no_const_val += v_get
+                                no_const_list_index.append(i)
+                if (self.cb["val"].count(0) - len(dont_touch_list_index) - 1) != 0:
+                    # Так же сохраняем его в переменную для эксель.
+                    setting["list_values"][self.name][idx] = value
+                    ### Расчет минимального и максимального значения ###
+                    max = round(len(setting["list_values"][self.name]) - const_val - dont_touch_val ,2)
+                    min = round(self.num - const_val - dont_touch_val - ((self.cb["val"].count(0)-1) * max_value_DoubleVar),2) # 2 - это пока что максимальное значение в днях =4
+
+                    if value < min and self.cb["val"].count(0) == 2:
+                        self.cb["StringVar"][idx].trace_vdelete('w', self.cb["StringVar"][idx].trace_id)
+                        self.cb["StringVar"][idx].set(str(round(min,2)))
+                        self.cb["StringVar"][idx].trace_id = self.cb["StringVar"][idx].trace('w', self.magic_entry)
+                        # value = min
+                    elif value > max and self.cb["val"].count(0) == 2:
+                        self.cb["StringVar"][idx].trace_vdelete('w', self.cb["StringVar"][idx].trace_id)
+                        self.cb["StringVar"][idx].set(str(round(max,2)))
+                        self.cb["StringVar"][idx].trace_id = self.cb["StringVar"][idx].trace('w', self.magic_entry)
+                        # value = max
+                    else:
+                        if (value >= max or value < min):
+                            if max > max_value_DoubleVar:
+                                rez = min
+                            else:
+                                rez = max
+                            # self.cb["StringVar"][idx].trace_vdelete('w', self.cb["StringVar"][idx].trace_id)
+                            setting["list_values"][self.name][idx] = rez
+                            # self.cb["StringVar"][idx].set(str(round(rez, 2)))
+                            # self.cb["StringVar"][idx].trace_id = self.cb["StringVar"][idx].trace('w', self.magic_entry)
+                        # Расчёт по формуле чтобы всегда было = 1
+                        x = len(setting["list_values"][self.name]) - value - const_val - dont_touch_val#self.num / (self.cb["val"].count(0) - 1) # Определяем какие значения у оставшихся должны быть чтобы всё было == 1
+                        z = (x - no_const_val) / (self.cb["val"].count(0) - len(dont_touch_list_index) - 1)
+                        # print("max=",max)
+                        # print("min=",min)
+                        # print("x = ", len(setting["list_values"][self.name]), "-", value, "-", const_val, "-", dont_touch_val, "=", x)
+                        # print("z = (", x, "-", no_const_val, ") / (", self.cb["val"].count(0), "-", len(dont_touch_list_index),"- 1) = ",z)
+                        for index in no_const_list_index:
+                            if self.num_day <= index and index < self.num_day + self.num:
+                                self.cb["StringVar"][index].trace_vdelete('w', self.cb["StringVar"][index].trace_id)
+                            rez = float(self.cb["StringVar"][index].get()) + z
+                            if rez <= 0:
+                                self.cb["StringVar"][index].set(str(0.0))
+                                setting["list_values"][self.name][index] = 0.0
+                                resert = True
+                            elif rez >= max_value_DoubleVar:
+                                # print("max_value_DoubleVar=",max_value_DoubleVar)
+                                self.cb["StringVar"][index].set(str(max_value_DoubleVar))
+                                setting["list_values"][self.name][index] = max_value_DoubleVar
+                                reset = True
+                            # Делать расчет максимума опираясь на нули
+                            else:
+                                self.cb["StringVar"][index].set(str(round(rez,10)))
+                                setting["list_values"][self.name][index] = rez
+                            if self.num_day <= index and index < self.num_day + self.num:
+                                self.cb["StringVar"][index].trace_id = self.cb["StringVar"][index].trace('w', self.magic_entry)
+
+                        # print(reset)
+                        # print(setting["list_values"][self.name])
+                else:
+                    self.cb["StringVar"][idx].trace_vdelete('w', self.cb["StringVar"][idx].trace_id)
+                    self.cb["StringVar"][idx].set(str(round(setting["list_values"][self.name][idx],2)))
+                    self.cb["StringVar"][idx].trace_id = self.cb["StringVar"][idx].trace('w', self.magic_entry)
+                # print(sum(setting["list_values"][self.name]) / len(setting["list_values"][self.name]))
+                for index in no_const_list_index:
+                    if idx != index:
+                        if self.num_day <= index and index < self.num_day + self.num:
+                            self.cb["StringVar"][index].trace_vdelete('w', self.cb["StringVar"][index].trace_id)
+                        self.cb["StringVar"][index].set(str(round(setting["list_values"][self.name][index], 2)))
+                        if self.num_day <= index and index < self.num_day + self.num:
+                            self.cb["StringVar"][index].trace_id = self.cb["StringVar"][index].trace('w', self.magic_entry)
 
     def chart(self):
         fig, ax = plt.subplots()
@@ -910,7 +1016,7 @@ class win_setting_for_year(Toplevel):
             i += 1
 
     def open_month(self, month):
-        num = int(monthrange(2022, month)[1])
+        num = int(monthrange(int(year), month)[1])
         label_x = 'день'
         label_y = 'коэфф.'
         description = f"График за год"
@@ -958,8 +1064,7 @@ def main(year, num_people, q_people):
         "месяц": [],
         "общий расход": []
     }
-    # year = 2022#int(input("Введите год цифрами, к примеру 2022\n"))#
-    # num_people = 1000#int(input("Введите количество человек цифрами, к примеру 2000\n"))#
+
     procent = int(num_people*0.3)#10000#
     # q_people = 100/24000#int(input("Введите удельную норму водоотведения на одного жителя (л/сут), цифрами, к примеру 150\n"))/24000#
     q_people = q_people/24000#int(input("Введите удельную норму водоотведения на одного жителя (л/сут), цифрами, к примеру 150\n"))/24000#
@@ -986,7 +1091,7 @@ def main(year, num_people, q_people):
     # rez['общий расход'] = list_rez
     # df2 = pd.DataFrame(rez).drop('месяц', axis=1).drop('день', axis=1) #Убираем ненужные колонки из датафрейма
     df = pd.DataFrame(rez)
-    df.to_excel(f"{os.getcwd()}/expense_schedule.xlsx", index=None)
+    df.to_excel(f"{os.getcwd()}/calculation results/expense_schedule.xlsx", index=None)
     app.label['text'] = "Готово!"
     app.update_idletasks()
     # df2.to_excel(f"{os.getcwd()}/expense_schedule4.xlsx", index=None)
@@ -995,7 +1100,7 @@ def main(year, num_people, q_people):
 ### Общий расчет ###
 def raschet(j, q_people, procent, year, list_day, list_week, list_year, rezult, rez):
     global test
-    weekday = int(monthrange(year, 1)[0])  # узнаём день недели первого дня.
+    weekday = int(monthrange(int(year), 1)[0])  # узнаём день недели первого дня.
     hour = 1
     day_for_year = 0
     for i in range(12):
@@ -1005,7 +1110,7 @@ def raschet(j, q_people, procent, year, list_day, list_week, list_year, rezult, 
                 list_week = sample(list_week, len(list_week))
             list_year = sample(list_year, len(list_year))
         month = i + 1
-        days = int(monthrange(year, month)[1])  # узнаём количество дней в месяце
+        days = int(monthrange(int(year), month)[1])  # узнаём количество дней в месяце
         for day in range(days):
             value_w = list_week[weekday]
             value_m = list_year[day_for_year]
@@ -1042,7 +1147,9 @@ def chart_year(df):
     for idx, row in df.iterrows():
         if int(df['час'].max()) == int(row['час']):
             values_vrem.append(row["общий расход"])
-            rez_velues_vrem = (sum(values_vrem) / (len(values_vrem))) * 24
+            rez_velues_vrem = round((sum(values_vrem) / (len(values_vrem))) * 24)
+            print(values_vrem)
+            print(rez_velues_vrem)
             value.append(rez_velues_vrem)
             for i in range(24):
                 value_for_df.append(rez_velues_vrem)
@@ -1051,7 +1158,7 @@ def chart_year(df):
         elif int(row['день']) == day:
             values_vrem.append(row["общий расход"])
         else:
-            rez_velues_vrem = (sum(values_vrem) / (len(values_vrem))) * 24
+            rez_velues_vrem = round((sum(values_vrem) / (len(values_vrem))) * 24)
             value.append(rez_velues_vrem)
             for i in range(24):
                 value_for_df.append(rez_velues_vrem)
@@ -1084,12 +1191,12 @@ def faind_max_min_in_day(df):
                 if int(df3['час'].max()) == int(row2['час']):
                     days.append(day_i)
                     values_vrem.append(row2["общий расход"])
-                    value.append((sum(values_vrem) / (len(values_vrem))) * 24)
+                    value.append(round((sum(values_vrem) / (len(values_vrem))) * 24))
                     values_vrem = []
                 elif int(row2['день']) == day:
                     values_vrem.append(row2["общий расход"])
                 else:
-                    value.append((sum(values_vrem) / (len(values_vrem))) * 24)
+                    value.append(round((sum(values_vrem) / (len(values_vrem))) * 24))
                     day = int(row2['день'])
                     days.append(day_i)
                     day_i += 1

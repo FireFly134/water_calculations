@@ -52,45 +52,51 @@ setting = {
     "set_save_day": "",
     "set_save_week": "",
     "set_save_year": ""}
+
+application_path = ""
+
 def check_fails():
-    global setting
-    application_path = ""
+    global setting, application_path
     if getattr(sys, 'frozen', False):  # Проверяем создаёт ли программа временные файлы
         application_path = sys._MEIPASS  # сохраняем путь до временных файлов
     elif __file__:
         application_path = os.path.dirname(__file__)  # Если временных файлов нет, а это только когда программа не скомпилированна, берем нужные файлы рядом с папкой
-
-    if not os.path.exists(f"{os.getcwd()}/excel_chart_day.jpeg"):
-        setting["pathImage"]["IMG"] = os.path.join(application_path, 'excel_chart_day.jpeg')
-    else:
-        setting["pathImage"]["IMG"] = os.path.join(os.getcwd(), 'excel_chart_day.jpeg')
-    if not os.path.exists(f"{os.getcwd()}/excel_chart_week.jpeg"):
-        setting["pathImage"]["IMG2"] = os.path.join(application_path, 'excel_chart_week.jpeg')
-    else:
-        setting["pathImage"]["IMG2"] = os.path.join(os.getcwd(), 'excel_chart_week.jpeg')
-    if not os.path.exists(f"{os.getcwd()}/excel_chart_year.jpeg"):
-        setting["pathImage"]["IMG3"] = os.path.join(application_path, 'excel_chart_year.jpeg')
-    else:
-        setting["pathImage"]["IMG3"] = os.path.join(os.getcwd(), 'excel_chart_year.jpeg')
-
-    if not os.path.exists(f"{os.getcwd()}/day.xlsx"):
-        setting["pathDf"]["day"] = os.path.join(application_path, 'day.xlsx')
-    else:
-        setting["pathDf"]["day"] = os.path.join(os.getcwd(), 'day.xlsx')
-    if not os.path.exists(f"{os.getcwd()}/week.xlsx"):
-        setting["pathDf"]["week"] = os.path.join(application_path, 'week.xlsx')
-    else:
-        setting["pathDf"]["week"] = os.path.join(os.getcwd(), 'week.xlsx')
-    if not os.path.exists(f"{os.getcwd()}/year.xlsx"):
-        setting["pathDf"]["year"] = os.path.join(application_path, 'year.xlsx')
-    else:
-        setting["pathDf"]["year"] = os.path.join(os.getcwd(), 'year.xlsx')
+    if setting["pathImage"]["IMG"] == "":
+        if not os.path.exists(f"{os.getcwd()}/excel_chart_day.jpeg"):
+            setting["pathImage"]["IMG"] = os.path.join(application_path, 'excel_chart_day.jpeg')
+        else:
+            setting["pathImage"]["IMG"] = os.path.join(os.getcwd(), 'excel_chart_day.jpeg')
+    if setting["pathImage"]["IMG2"] == "":
+        if not os.path.exists(f"{os.getcwd()}/excel_chart_week.jpeg"):
+            setting["pathImage"]["IMG2"] = os.path.join(application_path, 'excel_chart_week.jpeg')
+        else:
+            setting["pathImage"]["IMG2"] = os.path.join(os.getcwd(), 'excel_chart_week.jpeg')
+    if setting["pathImage"]["IMG3"] == "":
+        if not os.path.exists(f"{os.getcwd()}/excel_chart_year.jpeg"):
+            setting["pathImage"]["IMG3"] = os.path.join(application_path, 'excel_chart_year.jpeg')
+        else:
+            setting["pathImage"]["IMG3"] = os.path.join(os.getcwd(), 'excel_chart_year.jpeg')
+    if setting["pathDf"]["day"] == "":
+        if not os.path.exists(f"{os.getcwd()}/day.xlsx"):
+            setting["pathDf"]["day"] = os.path.join(application_path, 'day.xlsx')
+        else:
+            setting["pathDf"]["day"] = os.path.join(os.getcwd(), 'day.xlsx')
+    if setting["pathDf"]["week"] == "":
+        if not os.path.exists(f"{os.getcwd()}/week.xlsx"):
+            setting["pathDf"]["week"] = os.path.join(application_path, 'week.xlsx')
+        else:
+            setting["pathDf"]["week"] = os.path.join(os.getcwd(), 'week.xlsx')
+    if setting["pathDf"]["year"] == "":
+        if not os.path.exists(f"{os.getcwd()}/year.xlsx"):
+            setting["pathDf"]["year"] = os.path.join(application_path, 'year.xlsx')
+        else:
+            setting["pathDf"]["year"] = os.path.join(os.getcwd(), 'year.xlsx')
 
 if os.path.exists(os.path.join(os.getcwd(), "save_file\data_setting.json")):
     with open(os.path.join(os.getcwd(), "save_file\data_setting.json"), "r") as read_file:
         setting = json.load(read_file)
-else:
-    check_fails()
+
+check_fails()
 class general_functionality():
     global list_save_day, list_save_week, list_save_year
     def __init__(self):
@@ -292,8 +298,8 @@ class main_app(Tk):
 
     def open_window(self):
         path = os.path.join(os.getcwd(), 'calculation results')
-        if not os.path.exists(path):
-            os.mkdir(path)
+        # if not os.path.exists(path):
+        #     os.mkdir(path)
         os.system(f"explorer {path}")
 
     def open_window_day(self):
@@ -334,7 +340,7 @@ class main_app(Tk):
         global setting
         setting["num_people"] = int(self.num_people.get())
         setting["q_people"] = int(self.q_people.get())
-        setting["center_value_day"] = int(self.center_value_day.get())
+        setting["center_value_day"] = self.center_value_day.get()
 
 # Проверка на наличие необходимых файлов и их открытие.
     def check(self):
@@ -361,37 +367,28 @@ class main_app(Tk):
     def save_chart_day(self):
         setting["set_save_day"] = self.save_day.get()
         if self.save_day.get().replace(" ", "") != "":
-            if os.path.exists(f"{os.getcwd()}/save_file/day"):
-                if os.path.exists(f"{os.getcwd()}/save_file/day/{setting['set_save_day']}.xlsx"):
-                    self.open_window_ask_save("day", setting["set_save_day"])
-                else:
-                    general_functionality().save_file("day", setting["set_save_day"])
+            if os.path.exists(f"{os.getcwd()}/save_file/day/{setting['set_save_day']}.xlsx"):
+                self.open_window_ask_save("day", setting["set_save_day"])
             else:
-                os.mkdir(f"{os.getcwd()}/save_file/day")
+                general_functionality().save_file("day", setting["set_save_day"])
 
         # pass
     def save_chart_week(self):
         setting["set_save_week"] = self.save_week.get()
         if self.save_week.get().replace(" ", "") != "":
-            if os.path.exists(f"{os.getcwd()}/save_file/week"):
-                if os.path.exists(f"{os.getcwd()}/save_file/week/{setting['set_save_week']}.xlsx"):
-                    self.open_window_ask_save("week", setting["set_save_week"])
-                else:
-                    general_functionality().save_file("week", setting["set_save_week"])
+            if os.path.exists(f"{os.getcwd()}/save_file/week/{setting['set_save_week']}.xlsx"):
+                self.open_window_ask_save("week", setting["set_save_week"])
             else:
-                os.mkdir(f"{os.getcwd()}/save_file/week")
+                general_functionality().save_file("week", setting["set_save_week"])
 
         # pass
     def save_chart_year(self):
         setting["set_save_year"] = self.save_year.get()
         if self.save_year.get().replace(" ", "") != "":
-            if os.path.exists(f"{os.getcwd()}/save_file/year"):
-                if os.path.exists(f"{os.getcwd()}/save_file/year/{setting['set_save_year']}.xlsx"):
-                    self.open_window_ask_save("year", setting["set_save_year"])
-                else:
-                    general_functionality().save_file("year", setting["set_save_year"])
+            if os.path.exists(f"{os.getcwd()}/save_file/year/{setting['set_save_year']}.xlsx"):
+                self.open_window_ask_save("year", setting["set_save_year"])
             else:
-                os.mkdir(f"{os.getcwd()}/save_file/year")
+                general_functionality().save_file("year", setting["set_save_year"])
 
     def load_chart_day(self):
         global setting
@@ -415,59 +412,6 @@ class main_app(Tk):
             setting["set_save_year"] = self.save_year.get()
             clear_window()
 
-
-    # def save_file(self, name, name_file):
-    #     if name == "day":
-    #         if name_file not in self.list_save_day:
-    #             self.list_save_day.append(name_file)
-    #         img_num = "IMG"
-    #         name_column = "hour"
-    #         description = f"График за день"
-    #         label_x = 'Час'
-    #         label_y = 'коэфф.'
-    #     elif name == "week":
-    #         if name_file not in self.list_save_week:
-    #             self.list_save_week.append(name_file)
-    #         img_num = "IMG2"
-    #         name_column = "week"
-    #         description = f"График за неделю"
-    #         label_x = 'номер недели'
-    #         label_y = 'коэфф.'
-    #     else:
-    #         if name_file not in self.list_save_year:
-    #             self.list_save_year.append(name_file)
-    #         img_num = "IMG3"
-    #         name_column = "day"
-    #         description = f"График за год"
-    #         label_x = 'день'
-    #         label_y = 'коэфф.'
-    #     rez = {name_column: [],
-    #            "k": [],
-    #            "chekBox": []
-    #            }
-    #     for i in range(len(setting["list_values"][name])): #Нужно ли эта перезапись?
-    #         rez[name_column].append(i+1)
-    #         rez["k"].append(setting["list_values"][name][i])
-    #         rez["chekBox"].append(setting["list_values"][f"cb_{name}"][i])
-    #     df = pd.DataFrame(rez)
-    #     df.to_excel(f"{os.getcwd()}/save_file/{name}/{name_file}.xlsx", index=None)
-    #     self.chart(name, rez[name_column], rez["k"], label_x, label_y, f'excel_chart_{name_file}.jpeg', description)
-    #     setting["pathDf"][name] = f"{os.getcwd()}/save_file/{name}/{name_file}.xlsx"
-    #     setting["pathImage"][img_num] = f"{os.getcwd()}/save_file/{name}/excel_chart_{name_file}.jpeg"
-    #     clear_window()
-    # def chart(self, name, list_x, list_y, label_x, label_y, file_name, description):
-    #     fig, ax = plt.subplots()
-    #     plt.plot(list_x, list_y, color='red')
-    #     fig.autofmt_xdate()
-    #     ax.grid()
-    #     if name == "day":
-    #         plt.xlim([1, 24])
-    #     ax.set_title(description)
-    #     plt.ylabel(label_y)
-    #     plt.xlabel(label_x)
-    #     plt.savefig(f"{os.getcwd()}/save_file/{name}/{file_name}")
-    #     plt.close()
-
     def check_list_save(self):
         global list_save_day, list_save_week, list_save_year
         if not os.path.exists(f"{os.getcwd()}/save_file/"):
@@ -478,6 +422,9 @@ class main_app(Tk):
             os.mkdir(f"{os.getcwd()}/save_file/week")
         if not os.path.exists(f"{os.getcwd()}/save_file/year"):
             os.mkdir(f"{os.getcwd()}/save_file/year")
+        if not os.path.exists(os.path.join(os.getcwd(), 'calculation results')):
+            os.mkdir(os.path.join(os.getcwd(), 'calculation results'))
+
         list_save_day = [name.replace(".xlsx", "") for name in os.listdir(f"{os.getcwd()}/save_file/day") if "excel_chart_" not in name]
         list_save_week = [name.replace(".xlsx", "") for name in os.listdir(f"{os.getcwd()}/save_file/week") if "excel_chart_" not in name]
         list_save_year = [name.replace(".xlsx", "") for name in os.listdir(f"{os.getcwd()}/save_file/year") if "excel_chart_" not in name]
@@ -838,6 +785,8 @@ class win_setting(Toplevel):
                 const_val = 0
                 no_const_val = 0
                 dont_touch_val = 0
+                rez_m = 0
+                rez=0
                 no_const_list_index = []
                 dont_touch_list_index = []
                 # Получаем значение которое мы изменяем
@@ -884,11 +833,11 @@ class win_setting(Toplevel):
                     else:
                         if (value >= max or value < min):
                             if max > max_value_DoubleVar:
-                                rez = min
+                                rez_m = min
                             else:
-                                rez = max
+                                rez_m = max
                             # self.cb["StringVar"][idx].trace_vdelete('w', self.cb["StringVar"][idx].trace_id)
-                            setting["list_values"][self.name][idx] = rez
+                            setting["list_values"][self.name][idx] = rez_m
                             # self.cb["StringVar"][idx].set(str(round(rez, 2)))
                             # self.cb["StringVar"][idx].trace_id = self.cb["StringVar"][idx].trace('w', self.magic_entry)
                         # Расчёт по формуле чтобы всегда было = 1
@@ -913,7 +862,7 @@ class win_setting(Toplevel):
                                 reset = True
                             # Делать расчет максимума опираясь на нули
                             else:
-                                self.cb["StringVar"][index].set(str(round(rez,10)))
+                                # self.cb["StringVar"][index].set(str(round(rez,10)))
                                 setting["list_values"][self.name][index] = rez
                             if self.num_day <= index and index < self.num_day + self.num:
                                 self.cb["StringVar"][index].trace_id = self.cb["StringVar"][index].trace('w', self.magic_entry)
@@ -922,16 +871,19 @@ class win_setting(Toplevel):
                         # print(setting["list_values"][self.name])
                 else:
                     self.cb["StringVar"][idx].trace_vdelete('w', self.cb["StringVar"][idx].trace_id)
-                    self.cb["StringVar"][idx].set(str(round(setting["list_values"][self.name][idx],2)))
+                    # self.cb["StringVar"][idx].set(str(round(setting["list_values"][self.name][idx],2)))
+                    self.cb["StringVar"][idx].set(str(setting["list_values"][self.name][idx]))
                     self.cb["StringVar"][idx].trace_id = self.cb["StringVar"][idx].trace('w', self.magic_entry)
                 # print(sum(setting["list_values"][self.name]) / len(setting["list_values"][self.name]))
                 for index in no_const_list_index:
                     if idx != index:
                         if self.num_day <= index and index < self.num_day + self.num:
                             self.cb["StringVar"][index].trace_vdelete('w', self.cb["StringVar"][index].trace_id)
-                        self.cb["StringVar"][index].set(str(round(setting["list_values"][self.name][index], 2)))
+                        # self.cb["StringVar"][index].set(str(round(setting["list_values"][self.name][index], 2)))
+                        self.cb["StringVar"][index].set(str(setting["list_values"][self.name][index]))
                         if self.num_day <= index and index < self.num_day + self.num:
                             self.cb["StringVar"][index].trace_id = self.cb["StringVar"][index].trace('w', self.magic_entry)
+                print(sum(setting["list_values"][self.name])/len(setting["list_values"][self.name]))
 
     def chart(self):
         fig, ax = plt.subplots()
@@ -943,14 +895,7 @@ class win_setting(Toplevel):
         ax.set_title(self.description)
         plt.ylabel(self.label_y)
         plt.xlabel(self.label_x)
-        # if not os.path.exists(f"{os.getcwd()}/calculation results"):
-        #     os.mkdir(f"{os.getcwd()}/calculation results")
-        # plt.savefig(f"{os.getcwd()}/calculation results/{self.file_name}")
         plt.savefig(self.file_name)
-
-
-        # plt.text(0, 7, "HELLO!", fontsize=15)
-        # plt.plot(range(0, 10), range(0, 10))
         plt.close()
 
     def default(self):
@@ -980,8 +925,20 @@ class win_setting(Toplevel):
 # Валидация ввода символов в ячейки ввода.
     def check_keys(self, text):
         list_punctuation_marks="!@#$%^&*()_-+=[{}]\|/,?><:;'\"`~ "
+        flag = False
+        if self.name == "day":
+            max_value_DoubleVar = 4.0
+        else:
+            max_value_DoubleVar = 2.0
+        if text == '':
+            flag = True
+        elif text.count(".") > 1:
+            flag = False
+        else:
+            if float(text) <= max_value_DoubleVar and float(text) >= 0:
+                flag = True
         # Не событие вставки или ни один символ в тексте не является буквой
-        return not any(char.isalpha() for char in text) and not any(char in list_punctuation_marks for char in text)
+        return not any(char.isalpha() for char in text) and not any(char in list_punctuation_marks for char in text) and flag
 
 ### Дочернее приложение TKinter, открывается дочернее окно с кнопками в которых названия месяцев###
 class win_setting_for_year(Toplevel):
@@ -1044,8 +1001,22 @@ class win_ask_saving(Toplevel):
 
 ### Очищаем основное окно, чтобы потом нарисовать новые картинки ###
 def clear_window():
+    if setting["pathDf"]["day"] == os.path.join(application_path, 'day.xlsx'):
+        setting["pathDf"]["day"] = ""
+    if setting["pathDf"]["week"] == os.path.join(application_path, 'week.xlsx'):
+        setting["pathDf"]["week"] = ""
+    if setting["pathDf"]["year"] == os.path.join(application_path, 'year.xlsx'):
+        setting["pathDf"]["year"] = ""
+
+    if setting["pathImage"]["IMG"] == os.path.join(application_path, 'excel_chart_day.jpeg'):
+        setting["pathImage"]["IMG"] = ""
+    if setting["pathImage"]["IMG2"] == os.path.join(application_path, 'excel_chart_week.jpeg'):
+        setting["pathImage"]["IMG2"] = ""
+    if setting["pathImage"]["IMG3"] == os.path.join(application_path, 'excel_chart_year.jpeg'):
+        setting["pathImage"]["IMG3"] = ""
     with open(os.path.join(os.getcwd(), "save_file\data_setting.json"), "w") as write_file:
         json.dump(setting, write_file)
+    check_fails()
     for widgets in app.winfo_children():
         widgets.destroy()
     # app.__init__()
@@ -1261,17 +1232,12 @@ def chart(list_x,list_y,label_x, label_y, description, file_name, limit=False, m
     plt.xlabel(label_x)
     if limit:
         plt.xlim([1, len(list_x)])
-    if not os.path.exists(f"{os.getcwd()}/calculation results"):
-        os.mkdir(f"{os.getcwd()}/calculation results")
     plt.savefig(f"{os.getcwd()}/calculation results/{file_name}")
-
     plt.close()
 
-    # def check_keys(text):
-    #     list_punctuation_marks="!@#$%^&*()_-+=[{}]\|/,?><:;'\"`~"
-    #     # Не событие вставки или ни один символ в тексте не является буквой
-    #     return not any(char.isalpha() for char in text) and not any(char in list_punctuation_marks for char in text)
-
 if __name__ == "__main__":
+    # path = os.path.join(os.getcwd(), 'calculation results')
+    # if not os.path.exists(path):
+    #     os.mkdir(path)
     app = main_app()
     app.mainloop()

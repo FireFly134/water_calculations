@@ -22,7 +22,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 from PIL import ImageTk, Image
 
-rand_opt = False #вкл или выкл рандома
+rand_opt = True #вкл или выкл рандома
 year = datetime.datetime.now().strftime("%Y")
 # num_people = 1000
 # q_people = 100
@@ -883,7 +883,7 @@ class win_setting(Toplevel):
                         self.cb["StringVar"][index].set(str(setting["list_values"][self.name][index]))
                         if self.num_day <= index and index < self.num_day + self.num:
                             self.cb["StringVar"][index].trace_id = self.cb["StringVar"][index].trace('w', self.magic_entry)
-                print(sum(setting["list_values"][self.name])/len(setting["list_values"][self.name]))
+                # print(sum(setting["list_values"][self.name])/len(setting["list_values"][self.name]))
 
     def chart(self):
         fig, ax = plt.subplots()
@@ -1070,7 +1070,6 @@ def main(year, num_people, q_people):
 
 ### Общий расчет ###
 def raschet(j, q_people, procent, year, list_day, list_week, list_year, rezult, rez):
-    global test
     weekday = int(monthrange(int(year), 1)[0])  # узнаём день недели первого дня.
     hour = 1
     day_for_year = 0
@@ -1119,8 +1118,8 @@ def chart_year(df):
         if int(df['час'].max()) == int(row['час']):
             values_vrem.append(row["общий расход"])
             rez_velues_vrem = round((sum(values_vrem) / (len(values_vrem))) * 24)
-            print(values_vrem)
-            print(rez_velues_vrem)
+            # print(values_vrem)
+            # print(rez_velues_vrem)
             value.append(rez_velues_vrem)
             for i in range(24):
                 value_for_df.append(rez_velues_vrem)
